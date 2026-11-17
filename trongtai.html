@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <base target="_top">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="robots" content="noindex,nofollow">
+  <meta name="referrer" content="no-referrer">
+  <title>Nhập tỷ số · KUL</title>
+  <meta name="color-scheme" content="light dark">
+  <style>
+    :root {
+      --bg: #F2F2F7; --card: #FFFFFF; --text: #000; --muted: rgba(60,60,67,.62);
+      --fill: rgba(120,120,128,.12); --fill-2: rgba(120,120,128,.22); --sep: rgba(60,60,67,.16);
+      --tint: #FFB62E; --on-tint: #2A1A00; --gold: #B26A00;
+      --ok: #1E8A3A; --ok-bg: rgba(52,199,89,.16); --danger: #D70015; --danger-bg: rgba(255,59,48,.12);
+      --yellow: #FFD60A; --red: #FF3B30; --pen: rgba(88,86,214,.12); --pen-ink: #4B49C8;
+      --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, system-ui, sans-serif;
+      --num: ui-rounded, "SF Pro Rounded", var(--font);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #000; --card: #1C1C1E; --text: #fff; --muted: rgba(235,235,245,.62);
+        --fill: rgba(118,118,128,.24); --fill-2: rgba(118,118,128,.36); --sep: rgba(84,84,88,.6);
+        --gold: #FFC04D; --ok: #30D158; --ok-bg: rgba(48,209,88,.18); --danger: #FF453A; --danger-bg: rgba(255,69,58,.18);
+        --pen: rgba(124,122,255,.18); --pen-ink: #A5A3FF;
+      }
+    }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--font); }
+    body { padding: calc(env(safe-area-inset-top, 0px) + 12px) 14px calc(env(safe-area-inset-bottom, 0px) + 40px); max-width: 560px; margin: 0 auto; }
+    button { font: inherit; color: inherit; cursor: pointer; border: 0; }
+    button:focus-visible { outline: 3px solid var(--tint); outline-offset: 2px; }
+
+    header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 4px 16px; }
+    h1 { margin: 0; font-size: 28px; letter-spacing: -.02em; line-height: 1.1; }
+    .sub { margin: 4px 0 0; font-size: 14px; color: var(--muted); }
+    .refresh { background: var(--fill); border-radius: 999px; padding: 10px 16px; font-weight: 600; font-size: 14px; min-height: 44px; }
+    .refresh:disabled { opacity: .5; }
+
+    .card { background: var(--card); border-radius: 22px; padding: 16px; margin-bottom: 12px; border: 2px solid transparent; box-shadow: 0 1px 2px rgba(0,0,0,.04), 0 14px 32px -18px rgba(0,0,0,.18); }
+    .card.next { border-color: var(--tint); }
+    .top { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 14px; color: var(--muted); margin-bottom: 14px; }
+    .top b { color: var(--text); font-weight: 700; }
+    .top > span:first-child { min-width: 0; line-height: 1.35; }
+    .chip { font-size: 13px; font-weight: 700; padding: 4px 10px; border-radius: 999px; background: var(--fill); color: var(--muted); white-space: nowrap; flex-shrink: 0; }
+    .chip.done { background: var(--ok-bg); color: var(--ok); }
+    .chip.dirty { background: rgba(255,182,46,.22); color: var(--gold); white-space: nowrap; }
+
+    .teams { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .team { display: flex; flex-direction: column; align-items: center; gap: 10px; min-width: 0; }
+    .name { font-size: 16px; font-weight: 700; text-align: center; line-height: 1.2; min-height: 2.4em; display: flex; align-items: center; word-break: break-word; }
+    .name.pending { color: var(--muted); font-weight: 500; }
+    .score { font-family: var(--num); font-size: 64px; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; }
+    .step { display: flex; gap: 10px; width: 100%; }
+    .step button { flex: 1; height: 56px; border-radius: 16px; background: var(--fill); font-size: 30px; font-weight: 600; line-height: 1; }
+    .step button:active, .mini button:active { background: var(--fill-2); transform: scale(.96); }
+    .step button:disabled, .mini button:disabled { opacity: .35; }
+
+    /* Thẻ phạt */
+    .ic { display: inline-block; width: 15px; height: 21px; border-radius: 3px; flex-shrink: 0; box-shadow: inset 0 0 0 1px rgba(0,0,0,.12); }
+    .ic.y { background: var(--yellow); } .ic.r { background: var(--red); }
+    .cardsbar { display: block; width: 100%; margin-top: 16px; padding: 10px 0 2px; border-top: 1px solid var(--sep); background: none; text-align: left; }
+    .cardsbar .head { display: flex; align-items: center; justify-content: space-between; font-size: 14px; font-weight: 700; color: var(--muted); margin-bottom: 8px; }
+    .cardsbar .head span:last-child { color: var(--tint); filter: brightness(.8); }
+    .sum { display: flex; align-items: center; justify-content: center; gap: 12px; font-size: 18px; font-weight: 800; font-variant-numeric: tabular-nums; }
+    .sum i { margin-right: 5px; vertical-align: -4px; }
+    .cardspanel { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--sep); }
+    .cardspanel .head { display: flex; align-items: center; justify-content: space-between; font-size: 14px; font-weight: 700; color: var(--muted); margin-bottom: 10px; }
+    .cardspanel .head button { background: none; color: var(--muted); font-size: 14px; font-weight: 600; text-decoration: underline; min-height: 36px; padding: 0 4px; }
+    .crow { display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 8px; }
+    .mini { display: flex; align-items: center; gap: 6px; }
+    .mini button { width: 44px; height: 44px; border-radius: 14px; background: var(--fill); font-size: 24px; font-weight: 600; line-height: 1; }
+    .mini output { min-width: 26px; height: 44px; display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 800; font-variant-numeric: tabular-nums; }
+    .savecards { width: 100%; min-height: 46px; margin-top: 6px; border-radius: 14px; background: var(--fill); font-weight: 700; }
+
+    /* Người ghi bàn / nhận thẻ (đích danh) */
+    .scorers, .cnames { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; width: 100%; }
+    .cnames { margin: -2px 0 8px; }
+    .sc { min-height: 34px; max-width: 100%; padding: 0 10px; border-radius: 999px; background: var(--fill); font-size: 13px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .sc.trong { background: none; box-shadow: inset 0 0 0 1.5px var(--fill-2); color: var(--muted); font-weight: 600; }
+    .sc.on { box-shadow: inset 0 0 0 2px var(--tint); }
+    .kul-pick { width: 100%; padding: 10px; border-radius: 16px; background: var(--fill); text-align: left; }
+    .kul-pick .ph { display: flex; justify-content: space-between; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; color: var(--muted); margin-bottom: 8px; }
+    .kul-pick .ph button { background: none; color: var(--muted); font-weight: 700; text-decoration: underline; min-height: 32px; padding: 0 2px; }
+    .kul-pick .pl { display: flex; flex-wrap: wrap; gap: 6px; }
+    .kul-pick .pl button { min-height: 40px; padding: 0 10px; border-radius: 12px; background: var(--card); font-size: 14px; font-weight: 600; box-shadow: inset 0 0 0 1px var(--sep); text-align: left; }
+    .kul-pick .pl button.sel { background: var(--tint); color: var(--on-tint); box-shadow: none; }
+    .kul-pick .pl button small { color: var(--gold); margin-left: 4px; font-size: 12px; }
+    .kul-pick .pl .khac { color: var(--muted); font-style: italic; }
+    .kul-pick .pt { display: flex; gap: 6px; margin-top: 8px; }
+    .kul-pick input { flex: 1; min-width: 0; height: 40px; border-radius: 12px; border: 1px solid var(--sep); background: var(--card); color: var(--text); padding: 0 10px; font: inherit; font-size: 16px; }
+    .kul-pick .pt button { height: 40px; padding: 0 14px; border-radius: 12px; background: var(--tint); color: var(--on-tint); font-weight: 800; }
+    .kul-pick .note { font-size: 13px; color: var(--muted); margin-bottom: 6px; }
+
+    /* Luân lưu */
+    .pen { margin-top: 16px; padding: 14px; border-radius: 18px; background: var(--pen); }
+    .pen .ttl { text-align: center; font-weight: 800; font-size: 15px; color: var(--pen-ink); margin-bottom: 12px; line-height: 1.3; }
+    .pen .pscore { font-family: var(--num); font-size: 44px; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; }
+    .pen .step button { height: 48px; font-size: 26px; }
+    .pen .note { text-align: center; margin-top: 12px; font-size: 14px; font-weight: 700; color: var(--pen-ink); }
+    .pen .note.bad { color: var(--danger); }
+
+    .actions { display: flex; gap: 10px; margin-top: 16px; }
+    .primary { flex: 1; min-height: 54px; border-radius: 16px; background: var(--tint); color: var(--on-tint); font-size: 17px; font-weight: 800; padding: 0 10px; }
+    .primary:disabled { background: var(--fill); color: var(--muted); }
+    .ghost { min-height: 54px; padding: 0 18px; border-radius: 16px; background: var(--fill); font-weight: 600; }
+    .danger { background: var(--danger-bg); color: var(--danger); }
+    .confirm { margin-top: 16px; padding: 14px; border-radius: 16px; background: var(--fill); text-align: center; }
+    .confirm p { margin: 0 0 12px; font-size: 17px; font-weight: 600; line-height: 1.4; }
+    .confirm p small { display: block; font-size: 14px; font-weight: 600; color: var(--muted); margin-top: 4px; }
+    .confirm .actions { margin-top: 0; }
+    .photo { margin: -4px 0 14px; }
+    .photo .go { width: 100%; min-height: 50px; border-radius: 14px; background: #0A84FF; color: #fff; font-size: 16px; font-weight: 800; }
+    .photo .go:disabled { opacity: .5; }
+    .photo .on { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 12px; border-radius: 14px; background: rgba(10,132,255,.12); font-size: 14px; font-weight: 600; }
+    .photo .on b { font-variant-numeric: tabular-nums; font-size: 22px; }
+    .photo .on b.cam { color: var(--gold); } .photo .on b.do { color: var(--danger); }
+    .photo .on button { background: none; color: var(--muted); text-decoration: underline; font-size: 13px; padding: 4px; }
+    .dur { margin: -6px 0 12px; font-size: 13px; font-weight: 600; color: var(--muted); text-align: center; }
+    .dur.thieu { color: var(--danger); }
+    .linkbtn { background: none; color: var(--muted); font-size: 14px; text-decoration: underline; padding: 12px 4px 0; min-height: 44px; }
+
+    .empty, .error { text-align: center; padding: 40px 20px; color: var(--muted); line-height: 1.5; }
+    .error { color: var(--danger); }
+    #toast { position: fixed; left: 50%; bottom: calc(env(safe-area-inset-bottom, 0px) + 24px); transform: translate(-50%, 20px); background: #1C1C1E; color: #fff; padding: 12px 18px; border-radius: 999px; font-weight: 600; font-size: 15px; opacity: 0; pointer-events: none; transition: .25s; max-width: 90vw; text-align: center; }
+    #toast.show { opacity: 1; transform: translate(-50%, 0); }
+    #toast.bad { background: var(--danger); }
+    @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>Sân <span id="tenSan"></span></h1>
+      <p class="sub">Chỉ hiện các trận diễn ra ở sân này</p>
+    </div>
+    <button class="refresh" id="refresh">Tải lại</button>
+  </header>
+  <main id="list" aria-live="polite"><div class="empty">Đang tải các trận...</div></main>
+  <div id="toast" role="status"></div>
+
+<script src="kul-api.js?v=V250"></script>
+<script>
+  const SAN = Number(KUL_QS.get('san')) || 0;
+  const KEY = KUL_QS.get('k') || '';
+  document.getElementById('tenSan').textContent = SAN || '?'; document.title = 'Nhập tỷ số · Sân ' + (SAN || '?');
+  let matches = [];
+  const $list = document.getElementById('list');
+  const $refresh = document.getElementById('refresh');
+
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+  function msg(e) { return (e && e.message ? e.message : String(e)).replace(/^Exception:\s*/, ''); }
+  function clamp(v, max) { return Math.max(0, Math.min(max, v)); }
+
+  function toast(text, bad) {
+    const t = document.getElementById('toast');
+    t.textContent = text; t.className = 'show' + (bad ? ' bad' : '');
+    clearTimeout(toast._t); toast._t = setTimeout(() => { t.className = ''; }, 3000);
+  }
+
+  /* ---------- Người ghi bàn / nhận thẻ: mỗi bàn / thẻ là 1 ô {id: Mã KUL} hoặc {ten: tên gõ tay}; ô trống = chưa ghi tên ---------- */
+  const KHAC_BAN = 'Phản lưới / không rõ', KHAC_THE = 'Không rõ cầu thủ';
+  /* 📸 Báo photo: giờ máy chủ (OFF), phút dự kiến / tối thiểu */
+  let OFF = 0, DUKIEN = 25, TOITHIEU = 30;
+  const nowMs = () => Date.now() + OFF;
+  const hm = t => { const d = new Date(t); return ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2); };
+  const mmss = ms => { const am = ms < 0; ms = Math.abs(ms); let s = Math.floor(ms / 1000), m = Math.floor(s / 60); s %= 60; return (am ? '+' : '') + (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s; };
+  function photoBar(m, i) {
+    if (m.daCo) return '';   // thời lượng / thiếu giờ chỉ hiện ở link BTC
+    if (!m.bd) return '<div class="photo"><button class="go" data-i="' + i + '" data-act="photo"' + (m.busy || !(m.doi1 && m.doi2) ? ' disabled' : '') + '>📸 Báo photo — trận BẮT ĐẦU</button></div>';
+    return '<div class="photo"><div class="on"><span>📸 Đã báo bắt đầu lúc ' + hm(m.bd) + '</span><button data-i="' + i + '" data-act="huyphoto">Huỷ</button></div></div>';
+  }
+
+  const LISTS = { g: ['gA', 'gB'], y: ['yA', 'yB'], x: ['rA', 'rB'] };
+  const lk = (kind, side) => LISTS[kind][side === 'a' ? 0 : 1];
+  const fit = (arr, n) => { const out = (arr || []).slice(0, n).map(e => ({ id: e.id || '', ten: e.id ? '' : (e.ten || '') })); while (out.length < n) out.push({ id: '', ten: '' }); return out; };
+  const syncLen = (l, n) => { while (l.length < n) l.push({ id: '', ten: '' }); l.length = n; };
+  const sig = ls => JSON.stringify(ls.map(l => l.map(e => e.id || e.ten || '')));
+  const goalNames = m => sig([m.gA, m.gB]);
+  const cardNames = m => sig([m.yA, m.yB, m.rA, m.rB]);
+  const clean = l => l.map(e => ({ id: e.id, ten: e.id ? '' : e.ten }));
+
+  /* ---------- Trạng thái của từng trận ---------- */
+  function prep(m) {
+    Object.assign(m, {
+      a: m.d1 == null ? 0 : m.d1, b: m.d2 == null ? 0 : m.d2,
+      y1: m.v1, y2: m.v2, x1: m.r1, x2: m.r2,                       // x = thẻ đỏ (bản nháp)
+      q1: m.p1 == null ? 0 : m.p1, q2: m.p2 == null ? 0 : m.p2,       // q = pen (bản nháp)
+      touched: false, open: false, mode: '', busy: false, pick: null
+    });
+    const su = m.su || {};
+    m.cauThu1 = m.cauThu1 || []; m.cauThu2 = m.cauThu2 || [];
+    m.gA = fit(su.banA, m.a); m.gB = fit(su.banB, m.b);
+    m.yA = fit(su.vangA, m.y1); m.yB = fit(su.vangB, m.y2); m.rA = fit(su.doA, m.x1); m.rB = fit(su.doB, m.x2);
+    m.g0 = goalNames(m); m.c0 = cardNames(m);
+    return m;
+  }
+  const needPen = m => m.trucTiep && m.a === m.b && (m.touched || m.daCo);
+  const cardsDirty = m => m.y1 !== m.v1 || m.y2 !== m.v2 || m.x1 !== m.r1 || m.x2 !== m.r2 || cardNames(m) !== m.c0;
+  const penDirty = m => needPen(m) && (m.p1 == null || m.q1 !== m.p1 || m.q2 !== m.p2);
+  const scoreDirty = m => m.daCo ? (m.a !== m.d1 || m.b !== m.d2 || goalNames(m) !== m.g0) : m.touched;
+  const isDirty = m => scoreDirty(m) || penDirty(m) && m.daCo || cardsDirty(m);
+  const penBad = m => needPen(m) && m.q1 === m.q2;
+
+  function load(keepScroll, quiet) {
+    $refresh.disabled = true;
+    google.script.run
+      .withSuccessHandler(r => {
+        OFF = (r.now || Date.now()) - Date.now(); DUKIEN = r.phutDuKien || 25; TOITHIEU = r.phutToiThieu || 30;
+        if (r.dau) DAU = r.dau; CHO = false;
+        matches = r.matches.map(prep);
+        render();
+        $refresh.disabled = false;
+        if (!keepScroll) { const n = document.querySelector('.card.next'); if (n) n.scrollIntoView({ block: 'center', behavior: 'smooth' }); }
+      })
+      .withFailureHandler(e => { $refresh.disabled = false; if (quiet && matches.length) return;   /* tự cập nhật lỗi mạng: giữ nguyên màn hình */
+        $list.innerHTML = '<div class="error">' + esc(msg(e)) + '</div>'; })
+      .layTran(SAN, KEY);
+  }
+
+  function render() {
+    if (!matches.length) { $list.innerHTML = '<div class="empty">Chưa có trận nào được xếp ở sân ' + SAN + '.</div>'; return; }
+    const nextIdx = matches.findIndex(m => !m.daCo);
+    $list.innerHTML = matches.map((m, i) => card(m, i, i === nextIdx)).join('');
+    const inp = document.querySelector('.kul-pick input[data-focus]'); if (inp) inp.focus();
+  }
+
+  /* ---------- Giao diện một trận ---------- */
+  const ic = c => '<i class="ic ' + c + '"></i>';
+  function mini(i, act, side, val, label) {
+    return '<div class="mini"><button data-i="' + i + '" data-act="' + act + '-" data-side="' + side + '" aria-label="Giảm ' + label + '">−</button>' +
+      '<output aria-label="' + label + '">' + val + '</output>' +
+      '<button data-i="' + i + '" data-act="' + act + '+" data-side="' + side + '" aria-label="Tăng ' + label + '">+</button></div>';
+  }
+  const doiCua = (m, side) => side === 'a' ? m.cauThu1 : m.cauThu2;
+  function tenO(m, side, e) {
+    if (e.id) { const c = doiCua(m, side).find(x => x.id === e.id); return c ? ((c.soAo === '' || c.soAo == null) ? '' : '#' + c.soAo + ' ') + c.ten : e.id; }
+    return e.ten || '';
+  }
+  /* Các ô tên dưới tỷ số / cạnh thẻ — bấm để chọn / đổi người */
+  function chips(m, i, kind, side, icon) {
+    const key = lk(kind, side);
+    return m[key].map((e, k) => {
+      const t = tenO(m, side, e), on = m.pick && m.pick.key === key && m.pick.idx === k;
+      return '<button class="sc' + (t ? '' : ' trong') + (on ? ' on' : '') + '" data-i="' + i + '" data-act="chon" data-key="' + key + '" data-idx="' + k + '">' +
+        icon + ' ' + esc(t || 'Chọn người') + '</button>';
+    }).join('');
+  }
+  /* Bảng chọn: cầu thủ trong danh sách đội + "không rõ" + ô gõ tên (đội chưa nộp danh sách) */
+  function picker(m, i, kind, side) {
+    const key = lk(kind, side);
+    if (!m.pick || m.pick.key !== key || !m[key][m.pick.idx]) return '';
+    const ds = doiCua(m, side), cur = m[key][m.pick.idx], khac = kind === 'g' ? KHAC_BAN : KHAC_THE;
+    const title = (kind === 'g' ? '⚽ Ai ghi bàn' : kind === 'y' ? '🟨 Ai nhận thẻ vàng' : '🟥 Ai nhận thẻ đỏ') + (m[key].length > 1 ? ' (thứ ' + (m.pick.idx + 1) + ')' : '') + '?';
+    const go = (!cur.id && cur.ten && cur.ten !== khac) ? cur.ten : '';
+    return '<div class="kul-pick"><div class="ph"><span>' + title + '</span><button data-i="' + i + '" data-act="pkclose">Để sau</button></div>' +
+      (ds.length ? '<div class="pl">' + ds.map(c => '<button class="' + (cur.id === c.id ? 'sel' : '') + '" data-i="' + i + '" data-act="pk" data-pid="' + esc(c.id) + '">' +
+          ((c.soAo === '' || c.soAo == null) ? '' : '#' + esc(c.soAo) + ' ') + esc(c.ten) + (c.trangThai !== 'Đã duyệt' ? '<small>⏳ chưa duyệt</small>' : '') + '</button>').join('') + '</div>'
+        : '<div class="note">Đội chưa nộp danh sách cầu thủ — gõ tên bên dưới (hoặc để trống).</div>') +
+      '<div class="pl" style="margin-top:6px"><button class="khac' + (cur.ten === khac ? ' sel' : '') + '" data-i="' + i + '" data-act="pk" data-pid="" data-ten="' + esc(khac) + '">' + esc(khac) + '</button>' +
+        (cur.id || cur.ten ? '<button class="khac" data-i="' + i + '" data-act="pk" data-pid="" data-ten="">Bỏ tên</button>' : '') + '</div>' +
+      '<div class="pt"><input id="pk-' + i + '" maxlength="60" placeholder="' + (ds.length ? 'Hoặc gõ tên cầu thủ' : 'Tên cầu thủ') + '" value="' + esc(go) + '"' + (ds.length ? '' : ' data-focus="1"') + ' enterkeyhint="done">' +
+        '<button data-i="' + i + '" data-act="pktype">OK</button></div></div>';
+  }
+
+  function card(m, i, isNext) {
+    const ready = m.doi1 && m.doi2;
+    const dis = ready && !m.busy ? '' : 'disabled';
+    const dirty = isDirty(m);
+    const penTxt = (m.daCo && m.p1 != null) ? ' (pen ' + m.p1 + '-' + m.p2 + ')' : '';
+    const chip = dirty ? '<span class="chip dirty">Chưa lưu</span>'
+      : m.daCo ? '<span class="chip done">Đã chốt ' + m.d1 + '-' + m.d2 + penTxt + '</span>'
+      : '<span class="chip">Chưa đá</span>';
+
+    const team = (name, side, val) => '<div class="team">' +
+      '<div class="name ' + (name ? '' : 'pending') + '">' + esc(name || 'Chờ xác định') + '</div>' +
+      '<div class="score" aria-label="Điểm ' + esc(name) + '">' + val + '</div>' +
+      '<div class="step">' +
+        '<button data-i="' + i + '" data-act="dec" data-side="' + side + '" aria-label="Giảm điểm" ' + dis + '>−</button>' +
+        '<button data-i="' + i + '" data-act="inc" data-side="' + side + '" aria-label="Tăng điểm" ' + dis + '>+</button>' +
+      '</div>' +
+      (m[lk('g', side)].length ? '<div class="scorers">' + chips(m, i, 'g', side, '⚽') + '</div>' : '') +
+      picker(m, i, 'g', side) +
+      '</div>';
+
+    /* Thẻ phạt: thu gọn hiện tóm tắt dưới từng đội; mở ra để chỉnh */
+    let cards;
+    if (!m.open) {
+      cards = '<button class="cardsbar" data-i="' + i + '" data-act="opencards" ' + (ready ? '' : 'disabled') + '>' +
+        '<div class="head"><span>Thẻ phạt</span><span>Ghi thẻ</span></div>' +
+        '<div class="teams"><div class="sum">' + ic('y') + m.y1 + ' ' + ic('r') + m.x1 + '</div>' +
+        '<div class="sum">' + ic('y') + m.y2 + ' ' + ic('r') + m.x2 + '</div></div></button>';
+    } else {
+      const col = (s, y, x) =>
+        '<div class="team" style="gap:0">' +
+          '<div class="crow">' + ic('y') + mini(i, 'y', s, y, 'thẻ vàng') + '</div>' +
+          (m[lk('y', s)].length ? '<div class="cnames">' + chips(m, i, 'y', s, '🟨') + '</div>' : '') +
+          '<div class="crow">' + ic('r') + mini(i, 'x', s, x, 'thẻ đỏ') + '</div>' +
+          (m[lk('x', s)].length ? '<div class="cnames">' + chips(m, i, 'x', s, '🟥') + '</div>' : '') +
+          picker(m, i, 'y', s) + picker(m, i, 'x', s) +
+        '</div>';
+      cards = '<div class="cardspanel"><div class="head"><span>Thẻ phạt</span><button data-i="' + i + '" data-act="closecards">Thu gọn</button></div>' +
+        '<div class="teams">' + col('a', m.y1, m.x1) + col('b', m.y2, m.x2) + '</div>' +
+        (cardsDirty(m) ? '<button class="savecards" data-i="' + i + '" data-act="savecards"' + (m.busy ? ' disabled' : '') + '>' + (m.busy ? 'Đang lưu...' : 'Lưu thẻ phạt (trận chưa kết thúc)') + '</button>' : '') +
+        '</div>';
+    }
+
+    /* Luân lưu: chỉ hiện ở trận loại trực tiếp đang hòa */
+    let pen = '';
+    if (needPen(m)) {
+      const w = m.q1 > m.q2 ? m.doi1 : m.q2 > m.q1 ? m.doi2 : '';
+      pen = '<div class="pen"><div class="ttl">Hòa · đá luân lưu</div>' +
+        '<div class="teams">' +
+          '<div class="team"><div class="pscore" aria-label="Pen ' + esc(m.doi1) + '">' + m.q1 + '</div><div class="step">' +
+            '<button data-i="' + i + '" data-act="pdec" data-side="a" aria-label="Giảm pen">−</button><button data-i="' + i + '" data-act="pinc" data-side="a" aria-label="Tăng pen">+</button></div></div>' +
+          '<div class="team"><div class="pscore" aria-label="Pen ' + esc(m.doi2) + '">' + m.q2 + '</div><div class="step">' +
+            '<button data-i="' + i + '" data-act="pdec" data-side="b" aria-label="Giảm pen">−</button><button data-i="' + i + '" data-act="pinc" data-side="b" aria-label="Tăng pen">+</button></div></div>' +
+        '</div>' +
+        (penBad(m) ? '<div class="note bad">Luân lưu phải có đội thắng, không được hòa</div>' : '<div class="note">' + esc(w) + ' thắng luân lưu ' + Math.max(m.q1, m.q2) + ' - ' + Math.min(m.q1, m.q2) + '</div>') +
+      '</div>';
+    }
+
+    /* Chân thẻ: nút chốt / xác nhận */
+    const theLine = () => {
+      const bits = [];
+      if (m.y1 || m.y2) bits.push('Vàng ' + m.y1 + ' - ' + m.y2);
+      if (m.x1 || m.x2) bits.push('Đỏ ' + m.x1 + ' - ' + m.x2);
+      return bits.length ? '<small>' + bits.join(' · ') + '</small>' : '';
+    };
+    const banLine = () => {
+      const ten = (side, l) => l.map(e => tenO(m, side, e)).filter(Boolean);
+      const t = ten('a', m.gA).concat(ten('b', m.gB));
+      return t.length ? '<small>⚽ ' + esc(t.join(', ')) + '</small>' : '';
+    };
+    let foot;
+    if (m.mode === 'save') {
+      const penLine = needPen(m) ? '<small>Luân lưu: ' + m.q1 + ' - ' + m.q2 + ' (' + esc(m.q1 > m.q2 ? m.doi1 : m.doi2) + ' thắng)</small>' : '';
+      foot = '<div class="confirm"><p>Chốt tỷ số<br>' + esc(m.doi1) + ' ' + m.a + ' - ' + m.b + ' ' + esc(m.doi2) + penLine + banLine() + theLine() + '</p>' +
+        '<div class="actions"><button class="ghost" data-i="' + i + '" data-act="back">Quay lại</button>' +
+        '<button class="primary" data-i="' + i + '" data-act="save"' + (m.busy ? ' disabled' : '') + '>' + (m.busy ? 'Đang lưu...' : 'Chốt tỷ số') + '</button></div></div>';
+    } else if (m.mode === 'clear') {
+      foot = '<div class="confirm"><p>Xóa tỷ số trận này?<small>Trận quay về chưa đá. Thẻ phạt vẫn được giữ.</small></p>' +
+        '<div class="actions"><button class="ghost" data-i="' + i + '" data-act="back">Giữ lại</button>' +
+        '<button class="primary danger" data-i="' + i + '" data-act="clear"' + (m.busy ? ' disabled' : '') + '>' + (m.busy ? 'Đang xóa...' : 'Xóa tỷ số') + '</button></div></div>';
+    } else {
+      const canSave = ready && !penBad(m) && (!m.daCo || dirty);
+      const label = !ready ? 'Chưa đủ hai đội' : penBad(m) ? 'Nhập kết quả luân lưu' : m.daCo ? 'Lưu thay đổi' : 'Chốt tỷ số';
+      foot = '<div class="actions"><button class="primary" data-i="' + i + '" data-act="ask" ' + (canSave ? '' : 'disabled') + '>' + label + '</button></div>' +
+        (m.daCo ? '<div style="text-align:center"><button class="linkbtn" data-i="' + i + '" data-act="askclear">Xóa tỷ số trận này</button></div>' : '');
+    }
+
+    return '<article class="card ' + (isNext ? 'next' : '') + '">' +
+      '<div class="top"><span><b>' + esc(m.gio) + '</b> · ' + esc(m.ma) + (m.nhom ? ' · Nhóm ' + esc(m.nhom) : '') + '</span>' + chip + '</div>' +
+      photoBar(m, i) +
+      '<div class="teams">' + team(m.doi1, 'a', m.a) + team(m.doi2, 'b', m.b) + '</div>' +
+      pen + cards + foot + '</article>';
+  }
+
+  /* ---------- Xử lý bấm ---------- */
+  $list.addEventListener('click', ev => {
+    const btn = ev.target.closest('button[data-act]');
+    if (!btn) return;
+    const m = matches[Number(btn.dataset.i)];
+    if (!m || m.busy) return;
+    const act = btn.dataset.act, side = btn.dataset.side;
+    const A = side === 'a';
+    const step = (key, d, max) => { m[key] = clamp(m[key] + d, max); };
+    /* Giữ số ô tên = tỷ số / số thẻ; bấm "+" thì mở luôn bảng chọn cho bàn / thẻ vừa thêm */
+    const after = (kind, n, plus) => {
+      const key = lk(kind, side); syncLen(m[key], n);
+      if (plus && m[key].length) m.pick = { key, idx: m[key].length - 1 };
+      else if (m.pick && m.pick.key === key && m.pick.idx >= m[key].length) m.pick = null;
+    };
+
+    if (act === 'inc' || act === 'dec') { step(A ? 'a' : 'b', act === 'inc' ? 1 : -1, 99); m.touched = true; m.mode = ''; after('g', A ? m.a : m.b, act === 'inc'); }
+    else if (act === 'y+' || act === 'y-') { step(A ? 'y1' : 'y2', act === 'y+' ? 1 : -1, 30); m.mode = ''; after('y', A ? m.y1 : m.y2, act === 'y+'); }
+    else if (act === 'x+' || act === 'x-') { step(A ? 'x1' : 'x2', act === 'x+' ? 1 : -1, 30); m.mode = ''; after('x', A ? m.x1 : m.x2, act === 'x+'); }
+    else if (act === 'pinc' || act === 'pdec') { step(A ? 'q1' : 'q2', act === 'pinc' ? 1 : -1, 30); m.mode = ''; }
+    else if (act === 'chon') { const p = { key: btn.dataset.key, idx: Number(btn.dataset.idx) }; m.pick = (m.pick && m.pick.key === p.key && m.pick.idx === p.idx) ? null : p; }
+    else if (act === 'pk' || act === 'pktype') {
+      if (!m.pick) return;
+      const e = m[m.pick.key][m.pick.idx]; if (!e) return;
+      let pid = '', ten = '';
+      if (act === 'pk') { pid = btn.dataset.pid || ''; ten = pid ? '' : (btn.dataset.ten || ''); }
+      else { ten = (document.getElementById('pk-' + btn.dataset.i) || {}).value || ''; ten = ten.trim(); if (!ten) { toast('Gõ tên cầu thủ hoặc bấm "Để sau"', true); return; } }
+      if (pid && m.pick.key[0] === 'y' && m[m.pick.key].some((x, k) => k !== m.pick.idx && x.id === pid) &&
+          !confirm('Cầu thủ này đã có thẻ vàng trong trận.\n2 thẻ vàng = thẻ đỏ (truất quyền). Ghi thẻ vàng thứ 2?\n(Nhớ ghi thêm thẻ đỏ nếu điều lệ tính 2 vàng = 1 đỏ.)')) return;
+      e.id = pid; e.ten = ten; m.pick = null; m.mode = '';
+    }
+    else if (act === 'pkclose') { m.pick = null; }
+    else if (act === 'opencards') { m.open = true; }
+    else if (act === 'closecards') { m.open = false; if (m.pick && m.pick.key[0] !== 'g') m.pick = null; }
+    else if (act === 'ask') {
+      if (m.trucTiep && m.a === m.b && !needPen(m)) { m.touched = true; toast('Trận hòa: nhập kết quả luân lưu rồi chốt', false); }
+      else { m.mode = 'save'; m.pick = null; }
+    }
+    else if (act === 'askclear') { m.mode = 'clear'; }
+    else if (act === 'back') { m.mode = ''; }
+    else if (act === 'save' || act === 'clear' || act === 'savecards') { return submit(m, act); }
+    else if (act === 'photo') { return baoPhoto(m); }
+    else if (act === 'huyphoto') { if (!confirm('Huỷ báo bắt đầu trận này? (bấm nhầm trận)')) return; return baoPhoto(m, true); }
+    render();
+  });
+  /* Gõ tên xong bấm Enter = OK */
+  $list.addEventListener('keydown', ev => {
+    if (ev.key !== 'Enter' || !ev.target.closest('.kul-pick input')) return;
+    ev.preventDefault(); const ok = ev.target.parentNode.querySelector('button[data-act="pktype"]'); if (ok) ok.click();
+  });
+
+  const suThe = m => ({ vangA: clean(m.yA), vangB: clean(m.yB), doA: clean(m.rA), doB: clean(m.rB) });
+  function payload(m) {
+    const pen = needPen(m);
+    return { d1: m.a, d2: m.b, v1: m.y1, v2: m.y2, r1: m.x1, r2: m.x2, p1: pen ? m.q1 : '', p2: pen ? m.q2 : '',
+      su: Object.assign({ banA: clean(m.gA), banB: clean(m.gB) }, suThe(m)) };
+  }
+
+  function baoPhoto(m, huy) {
+    m.busy = true; render();
+    const call = google.script.run
+      .withSuccessHandler(r => { m.busy = false; if (huy) { m.bd = 0; toast('Đã huỷ báo bắt đầu'); } else { OFF = r.now - Date.now(); m.bd = r.bd; toast('📸 Đã báo photo: trận bắt đầu ' + hm(r.bd)); } render(); })
+      .withFailureHandler(e => { m.busy = false; render(); toast(msg(e), true); });
+    if (huy) call.huyBaoPhoto(SAN, KEY, m.row, m.matran); else call.baoPhoto(SAN, KEY, m.row, m.matran);
+  }
+  function submit(m, act) {
+    m.busy = true; m.pick = null; render();
+    const call = google.script.run
+      .withSuccessHandler(() => {
+        m.busy = false; m.mode = '';
+        if (act === 'save') {
+          m.d1 = m.a; m.d2 = m.b; if (!m.daCo && !m.nh) m.nh = nowMs(); m.daCo = true; m.touched = false;
+          m.v1 = m.y1; m.v2 = m.y2; m.r1 = m.x1; m.r2 = m.x2;
+          if (needPen(m)) { m.p1 = m.q1; m.p2 = m.q2; } else { m.p1 = m.p2 = null; m.q1 = m.q2 = 0; }
+          m.g0 = goalNames(m); m.c0 = cardNames(m);
+          toast('Đã lưu kết quả');
+        } else if (act === 'savecards') {
+          m.v1 = m.y1; m.v2 = m.y2; m.r1 = m.x1; m.r2 = m.x2; m.c0 = cardNames(m);
+          toast('Đã lưu thẻ phạt');
+        } else {
+          m.d1 = m.d2 = null; m.a = m.b = 0; m.daCo = false; m.touched = false; m.p1 = m.p2 = null; m.q1 = m.q2 = 0;
+          m.gA = []; m.gB = []; m.g0 = goalNames(m); m.nh = 0;
+          toast('Đã xóa tỷ số');
+        }
+        render();
+      })
+      .withFailureHandler(e => { m.busy = false; render(); toast(msg(e), true); });
+    const cardData = { v1: m.y1, v2: m.y2, r1: m.x1, r2: m.x2, su: suThe(m) };
+    if (act === 'save') call.luuTySo(SAN, KEY, m.row, m.matran, payload(m));
+    else if (act === 'savecards') call.luuThePhat(SAN, KEY, m.row, m.matran, cardData);
+    else call.xoaTySo(SAN, KEY, m.row, m.matran);
+  }
+
+  $refresh.addEventListener('click', () => {
+    if (matches.some(isDirty) && !$refresh.dataset.warned) {
+      $refresh.dataset.warned = '1'; toast('Có dữ liệu chưa lưu. Bấm Tải lại lần nữa để bỏ qua.', true);
+      setTimeout(() => { delete $refresh.dataset.warned; }, 4000); return;
+    }
+    delete $refresh.dataset.warned; load(true);
+  });
+
+  /* ---------- Tự cập nhật khi bên khác thay đổi (BTC đổi lịch / đội, trọng tài khác, hồ sơ cầu thủ...) ----------
+     Hỏi "dấu thay đổi" 8 giây 1 lần (rất nhẹ); dấu đổi → tải lại. Đang nhập dở / đang lưu thì KHÔNG tải đè, chờ lưu xong. */
+  let DAU = null, CHO = false;
+  const ban = () => matches.some(m => m.busy || m.pick || m.mode || m.open || isDirty(m));
+  setInterval(() => {
+    if (document.hidden || $refresh.disabled) return;
+    if (CHO && !ban()) { load(true, true); return; }
+    google.script.run.withSuccessHandler(v => {
+      if (DAU === null) { DAU = v; return; }
+      if (v === DAU) return;
+      DAU = v;
+      if (ban()) { if (!CHO) toast('Lịch / dữ liệu vừa thay đổi — lưu xong trang sẽ tự cập nhật'); CHO = true; }
+      else load(true, true);
+    }).withFailureHandler(() => {}).kulDau();
+  }, 8000);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden && matches.length && !ban()) load(true, true); });
+
+  load(false);
+</script>
+<script>var KUL_AUTH={role:'referee',san:SAN,key:KEY};</script>
+<script src="kul-team.js?v=V250"></script>
+</body>
+</html>

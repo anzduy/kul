@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <base target="_top">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="robots" content="noindex,nofollow">
+  <meta name="referrer" content="no-referrer">
+  <title>Thu ngân · KUL</title>
+  <meta name="color-scheme" content="light dark">
+  <style>
+    :root {
+      --bg: #F2F2F7; --card: #FFFFFF; --text: #000; --muted: rgba(60,60,67,.62);
+      --fill: rgba(120,120,128,.12); --fill-2: rgba(120,120,128,.22); --sep: rgba(60,60,67,.16);
+      --tint: #FFB62E; --on-tint: #2A1A00; --gold: #B26A00;
+      --ok: #1E8A3A; --ok-bg: rgba(52,199,89,.16); --owe: #C93400; --owe-bg: rgba(255,149,0,.16);
+      --over: #0A64C8; --over-bg: rgba(10,132,255,.14); --danger: #D70015; --danger-bg: rgba(255,59,48,.12);
+      --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, system-ui, sans-serif;
+      --num: ui-rounded, "SF Pro Rounded", var(--font);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #000; --card: #1C1C1E; --text: #fff; --muted: rgba(235,235,245,.62);
+        --fill: rgba(118,118,128,.24); --fill-2: rgba(118,118,128,.36); --sep: rgba(84,84,88,.6);
+        --gold: #FFC04D; --ok: #30D158; --ok-bg: rgba(48,209,88,.18); --owe: #FF9F0A; --owe-bg: rgba(255,159,10,.18);
+        --over: #64A8FF; --over-bg: rgba(10,132,255,.2); --danger: #FF453A; --danger-bg: rgba(255,69,58,.18);
+      }
+    }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--font); }
+    body { padding: calc(env(safe-area-inset-top, 0px) + 12px) 14px calc(env(safe-area-inset-bottom, 0px) + 48px); max-width: 600px; margin: 0 auto; }
+    button { font: inherit; color: inherit; cursor: pointer; border: 0; }
+    button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 3px solid var(--tint); outline-offset: 2px; }
+    input, textarea { font: inherit; color: inherit; }
+
+    header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 4px 12px; }
+    h1 { margin: 0; font-size: 28px; letter-spacing: -.02em; line-height: 1.1; }
+    .refresh { background: var(--fill); border-radius: 999px; padding: 10px 16px; font-weight: 600; font-size: 14px; min-height: 44px; }
+    .refresh:disabled { opacity: .5; }
+
+    .tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+    .tile { background: var(--card); border-radius: 18px; padding: 12px 14px; min-width: 0; }
+    .tile .l { font-size: 13px; color: var(--muted); font-weight: 600; }
+    .tile .v { font-family: var(--num); font-size: clamp(17px, 5.6vw, 24px); font-weight: 800; line-height: 1.2; margin-top: 2px; font-variant-numeric: tabular-nums; }
+    .tile .s { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .tile.owe .v { color: var(--owe); } .tile.ok .v { color: var(--ok); }
+    details.sum { background: var(--card); border-radius: 18px; padding: 0 14px; margin-bottom: 12px; }
+    details.sum summary { list-style: none; cursor: pointer; padding: 12px 0; font-weight: 700; font-size: 15px; display: flex; justify-content: space-between; min-height: 44px; align-items: center; }
+    details.sum summary::-webkit-details-marker { display: none; }
+    details.sum summary span:last-child { color: var(--muted); font-weight: 600; font-size: 13px; }
+    .brow { display: flex; justify-content: space-between; gap: 12px; padding: 6px 0; font-size: 15px; }
+    .brow .a { font-variant-numeric: tabular-nums; font-weight: 700; white-space: nowrap; }
+    .brow .sub { display: block; font-size: 12px; color: var(--muted); font-weight: 500; margin-top: 1px; }
+    .brow.total { border-top: 1px solid var(--sep); margin-top: 4px; padding-top: 10px; font-weight: 800; }
+    .brow.big .a { font-size: 17px; }
+    .warn { font-size: 12px; color: var(--owe); font-weight: 600; }
+
+    .searchwrap { position: sticky; top: 0; z-index: 5; background: var(--bg); padding: 4px 0 8px; }
+    .toolbar { padding-bottom: 8px; }
+    .search { width: 100%; height: 46px; border: 0; border-radius: 14px; background: var(--fill); padding: 0 14px; font-size: 16px; }
+    .row { display: flex; gap: 8px; overflow-x: auto; padding: 8px 0 2px; scrollbar-width: none; }
+    .row::-webkit-scrollbar { display: none; }
+    .chip { flex-shrink: 0; min-height: 40px; padding: 0 14px; border-radius: 999px; background: var(--fill); font-weight: 600; font-size: 14px; white-space: nowrap; }
+    .chip.on { background: var(--tint); color: var(--on-tint); font-weight: 800; }
+    .chip small { opacity: .7; font-weight: 700; margin-left: 4px; }
+    .seg { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 4px; background: var(--fill); border-radius: 14px; padding: 3px; margin-top: 8px; }
+    .seg button { min-height: 40px; border-radius: 11px; background: none; font-weight: 600; font-size: 14px; }
+    .seg button.on { background: var(--card); font-weight: 800; box-shadow: 0 1px 3px rgba(0,0,0,.12); }
+
+    .team { background: var(--card); border-radius: 20px; margin-bottom: 10px; border: 2px solid transparent; overflow: hidden; }
+    .team.open { border-color: var(--tint); }
+    .head { display: block; width: 100%; text-align: left; background: none; padding: 14px 14px 12px; }
+    .head .r1 { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+    .tname { font-size: 18px; font-weight: 800; line-height: 1.2; word-break: break-word; }
+    .tmeta { font-size: 13px; color: var(--muted); margin-top: 2px; }
+    .badge { flex-shrink: 0; border-radius: 12px; padding: 6px 10px; font-weight: 800; font-size: 14px; text-align: center; font-variant-numeric: tabular-nums; max-width: 46%; }
+    .badge.owe { background: var(--owe-bg); color: var(--owe); } .badge.ok { background: var(--ok-bg); color: var(--ok); }
+    .badge.over { background: var(--over-bg); color: var(--over); } .badge.none { background: var(--fill); color: var(--muted); }
+    .bar { height: 6px; border-radius: 3px; background: var(--fill); margin: 10px 0 8px; overflow: hidden; }
+    .bar i { display: block; height: 100%; border-radius: 3px; background: var(--ok); }
+    .bar.part i { background: var(--tint); }
+    .tline { font-size: 13px; color: var(--muted); line-height: 1.4; }
+    .tline b { color: var(--text); font-weight: 700; }
+
+    .body { padding: 0 14px 16px; border-top: 1px solid var(--sep); }
+    .bill { padding: 10px 0 4px; }
+    .tabs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; background: var(--fill); border-radius: 14px; padding: 3px; margin: 8px 0 14px; }
+    .tabs button { min-height: 42px; border-radius: 11px; background: none; font-weight: 600; font-size: 14px; }
+    .tabs button.on { background: var(--card); font-weight: 800; box-shadow: 0 1px 3px rgba(0,0,0,.12); }
+
+    .field { margin-bottom: 12px; }
+    .lbl { font-size: 13px; font-weight: 700; color: var(--muted); margin-bottom: 6px; display: block; }
+    .money { width: 100%; height: 64px; border: 0; border-radius: 16px; background: var(--fill); padding: 0 16px; font-family: var(--num); font-size: 32px; font-weight: 800; font-variant-numeric: tabular-nums; }
+    .txt { width: 100%; height: 46px; border: 0; border-radius: 14px; background: var(--fill); padding: 0 14px; font-size: 16px; }
+    textarea.txt { height: 190px; padding: 12px 14px; line-height: 1.45; resize: vertical; }
+    .quick { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+    .quick .chip { min-height: 44px; }
+    .quick .full { background: var(--ok-bg); color: var(--ok); font-weight: 800; }
+    .stepper { display: flex; align-items: center; gap: 10px; }
+    .stepper button { width: 48px; height: 48px; border-radius: 14px; background: var(--fill); font-size: 26px; font-weight: 600; }
+    .stepper output { min-width: 44px; text-align: center; font-size: 24px; font-weight: 800; font-variant-numeric: tabular-nums; }
+    .preview { font-size: 15px; font-weight: 700; margin: 4px 0 12px; }
+
+    .primary { width: 100%; min-height: 56px; border-radius: 16px; background: var(--tint); color: var(--on-tint); font-size: 17px; font-weight: 800; padding: 0 12px; }
+    .primary:disabled { background: var(--fill); color: var(--muted); }
+    .primary.danger { background: var(--danger-bg); color: var(--danger); }
+    .ghost { min-height: 56px; padding: 0 16px; border-radius: 16px; background: var(--fill); font-weight: 600; white-space: nowrap; }
+    .actions { display: flex; gap: 10px; }
+    .secondary { width: 100%; min-height: 48px; border-radius: 14px; background: var(--fill); font-weight: 700; margin-top: 10px; }
+    .confirm { padding: 14px; border-radius: 16px; background: var(--fill); text-align: center; }
+    .confirm p { margin: 0 0 12px; font-size: 17px; font-weight: 700; line-height: 1.4; }
+    .confirm p small { display: block; font-size: 14px; font-weight: 600; color: var(--muted); margin-top: 4px; }
+
+    .hist { padding: 10px 0; border-bottom: 1px solid var(--sep); }
+    .hist:last-child { border-bottom: 0; }
+    .hist .h1 { display: flex; justify-content: space-between; gap: 10px; font-size: 15px; font-weight: 700; }
+    .hist .h2 { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .hist.void .h1 { text-decoration: line-through; color: var(--muted); }
+    .plus { color: var(--ok); } .minus { color: var(--owe); }
+    .linkbtn { background: none; color: var(--muted); font-size: 13px; text-decoration: underline; min-height: 36px; padding: 0 2px; }
+    .empty, .error { text-align: center; padding: 36px 20px; color: var(--muted); line-height: 1.5; }
+    .error { color: var(--danger); }
+    #toast { position: fixed; left: 50%; bottom: calc(env(safe-area-inset-bottom, 0px) + 24px); transform: translate(-50%, 20px); background: #1C1C1E; color: #fff; padding: 12px 18px; border-radius: 999px; font-weight: 600; font-size: 15px; opacity: 0; pointer-events: none; transition: .25s; max-width: 90vw; text-align: center; z-index: 20; }
+    #toast.show { opacity: 1; transform: translate(-50%, 0); } #toast.bad { background: var(--danger); }
+    @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Thu ngân</h1>
+    <button class="refresh" id="refresh">Tải lại</button>
+  </header>
+  <section id="summary"></section>
+  <div class="searchwrap"><input class="search" id="search" type="search" placeholder="Tìm tên đội" autocomplete="off" aria-label="Tìm tên đội"></div>
+  <div class="toolbar">
+    <div class="row" id="nhom" style="padding-top:0"></div>
+    <div class="seg" id="mode"></div>
+  </div>
+  <main id="list" aria-live="polite"><div class="empty">Đang tải danh sách đội...</div></main>
+  <div id="toast" role="status"></div>
+
+<script src="kul-api.js?v=V250"></script>
+<script>
+  const KEY = KUL_QS.get('k') || '';
+  let D = null;
+  const S = { q: '', nhom: '', mode: 'thieu', open: null };
+  const drafts = {};
+  const $ = id => document.getElementById(id);
+
+  /* ---------- Tiện ích ---------- */
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const num = n => String(Math.abs(Math.round(n))).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  const fmt = n => (n < 0 ? '-' : '') + num(n) + 'đ';
+  const msg = e => (e && e.message ? e.message : String(e)).replace(/^Exception:\s*/, '');
+  function toast(t, bad) { const el = $('toast'); el.textContent = t; el.className = 'show' + (bad ? ' bad' : ''); clearTimeout(toast._t); toast._t = setTimeout(() => { el.className = ''; }, 3200); }
+  function when(ms) { const d = new Date(ms), p = x => String(x).padStart(2, '0'); return p(d.getDate()) + '/' + p(d.getMonth() + 1) + ' ' + p(d.getHours()) + ':' + p(d.getMinutes()); }
+  function ago(ms) { const m = Math.max(0, Math.round((Date.now() - ms) / 60000)); if (m < 1) return 'vừa xong'; if (m < 60) return m + ' phút trước'; const h = Math.round(m / 60); return h < 24 ? h + ' giờ trước' : when(ms); }
+  function dr(id) {
+    return drafts[id] || (drafts[id] = { method: 'Tiền mặt', amount: 0, note: '', tab: 'thu', confirm: false, kh: null, khConfirm: false, nhac: false, nhacText: '', huyId: null, huyLoai: '', huyLy: '', busy: false });
+  }
+  function khDraft(d) { return d.kh || (d.kh = { loai: D.cfg.loaiKhoan[0], sl: 1, gia: D.cfg.giaKhoan[D.cfg.loaiKhoan[0]] || 0, note: '' }); }
+
+  /* ---------- Tải dữ liệu ---------- */
+  function load(quiet) {
+    $('refresh').disabled = true;
+    google.script.run
+      .withSuccessHandler(r => { D = r; if (r.dau) DAU = r.dau; CHO = false; $('refresh').disabled = false; renderAll(); })
+      .withFailureHandler(e => { $('refresh').disabled = false; if (!D) $('list').innerHTML = '<div class="error">' + esc(msg(e)) + '</div>'; else if (!quiet) toast(msg(e), true); })
+      .tnTongQuan(KEY);
+  }
+
+  /* ---------- Vẽ ---------- */
+  function renderAll() { renderSummary(); renderFilters(); renderList(); }
+
+  function renderSummary() {
+    const t = D.tong, k = t.theoKhoan;
+    const cp = D.cfg.gia, canhBao = (!cp.theVang && !cp.theDo) ? '<div class="warn">Chưa đặt mức phạt thẻ (sửa TN_CONFIG.GIA trong ThuNgan.gs)</div>' : '';
+    $('summary').innerHTML =
+      '<div class="tiles">' +
+        '<div class="tile ok"><div class="l">Đã thu</div><div class="v">' + fmt(t.tm + t.ck) + '</div><div class="s">trên ' + fmt(t.phai) + ' phải thu</div></div>' +
+        '<div class="tile owe"><div class="l">Còn thiếu</div><div class="v">' + fmt(t.conThieu) + '</div><div class="s">' + t.soThieu + ' đội chưa đủ</div></div>' +
+        '<div class="tile"><div class="l">Tiền mặt</div><div class="v">' + fmt(t.tm) + '</div></div>' +
+        '<div class="tile"><div class="l">Chuyển khoản</div><div class="v">' + fmt(t.ck) + '</div></div>' +
+      '</div>' +
+      '<details class="sum"><summary><span>Tổng kết theo khoản</span><span>Mở</span></summary>' +
+        [['Lệ phí giải', k.leGiai], ['Thuê đồ', k.thueDo], ['Phạt thẻ', k.phatThe], ['Quà lưu niệm (bảng)', k.qua], ['Huy chương', k.huyChuong], ['Khác', k.khac]]
+          .map(x => '<div class="brow"><span>' + x[0] + '</span><span class="a">' + fmt(x[1]) + '</span></div>').join('') +
+        '<div class="brow total"><span>Tổng phải thu</span><span class="a">' + fmt(t.phai) + '</span></div>' + canhBao +
+        '<button class="secondary" data-act="copydebt" style="margin-bottom:14px">Sao chép danh sách đội còn thiếu</button>' +
+      '</details>';
+  }
+
+  function renderFilters() {
+    const nhoms = []; D.teams.forEach(t => { if (t.nhom && nhoms.indexOf(t.nhom) < 0) nhoms.push(t.nhom); });
+    const cnt = n => D.teams.filter(t => !n || t.nhom === n).length;
+    $('nhom').innerHTML = nhoms.length > 1
+      ? ['<button class="chip ' + (S.nhom === '' ? 'on' : '') + '" data-nhom="">Tất cả<small>' + cnt('') + '</small></button>']
+          .concat(nhoms.map(n => '<button class="chip ' + (S.nhom === n ? 'on' : '') + '" data-nhom="' + esc(n) + '">' + esc(n) + '<small>' + cnt(n) + '</small></button>')).join('')
+      : '';
+    const m = [['thieu', 'Còn thiếu'], ['du', 'Đã đủ'], ['tatca', 'Tất cả']];
+    $('mode').innerHTML = m.map(x => '<button class="' + (S.mode === x[0] ? 'on' : '') + '" data-mode="' + x[0] + '">' + x[1] + '</button>').join('');
+  }
+
+  function status(t) { return t.tongPhai === 0 ? 'none' : t.conThieu > 0 ? 'owe' : t.conThieu < 0 ? 'over' : 'ok'; }
+
+  function visibleTeams() {
+    const q = S.q.trim().toLowerCase();
+    let list = D.teams.filter(t => (!S.nhom || t.nhom === S.nhom) && (!q || t.name.toLowerCase().indexOf(q) >= 0));
+    /* Đội đang mở luôn được giữ lại, kể cả khi vừa thu đủ và không còn khớp bộ lọc, để thấy xác nhận và lịch sử */
+    if (S.mode === 'thieu') list = list.filter(t => t.conThieu > 0 || t.id === S.open);
+    else if (S.mode === 'du') list = list.filter(t => (t.tongPhai > 0 && t.conThieu <= 0) || t.id === S.open);
+    return list.sort((a, b) => (b.conThieu - a.conThieu) || a.name.localeCompare(b.name, 'vi'));
+  }
+
+  function renderList() {
+    const list = visibleTeams();
+    if (!list.length) {
+      $('list').innerHTML = '<div class="empty">' + (S.q ? 'Không có đội nào khớp "' + esc(S.q) + '".' : S.mode === 'thieu' ? 'Không có đội nào còn thiếu tiền.' : 'Chưa có đội nào ở mục này.') + '</div>';
+      return;
+    }
+    $('list').innerHTML = list.map(teamCard).join('');
+  }
+
+  function teamCard(t) {
+    const open = S.open === t.id, st = status(t);
+    const badge = st === 'owe' ? 'Còn thiếu ' + fmt(t.conThieu) : st === 'ok' ? 'Đã đủ' : st === 'over' ? 'Dư ' + fmt(-t.conThieu) : 'Chưa có khoản';
+    const pct = t.tongPhai > 0 ? Math.min(100, Math.round(t.daThu * 100 / t.tongPhai)) : 0;
+    const line2 = t.tongPhai > 0 ? 'Đã thu <b>' + fmt(t.daThu) + '</b> / ' + fmt(t.tongPhai) + (t.soLanDong ? ' · ' + t.soLanDong + ' lần đóng' : '') : 'Chưa có khoản phải thu';
+    const nhac = t.nhacDem ? '<div class="tline">Đã nhắc ' + t.nhacDem + ' lần · gần nhất ' + ago(t.nhacCuoi) + '</div>' : '';
+    return '<article class="team ' + (open ? 'open' : '') + '" data-id="' + esc(t.id) + '">' +
+      '<button class="head" data-act="toggle" data-id="' + esc(t.id) + '" aria-expanded="' + open + '">' +
+        '<div class="r1"><div><div class="tname">' + esc(t.name) + '</div><div class="tmeta">' + esc([t.nhom, t.trangPhuc].filter(Boolean).join(' · ')) + '</div></div>' +
+        '<span class="badge ' + st + '">' + badge + '</span></div>' +
+        '<div class="bar ' + (pct < 100 ? 'part' : '') + '"><i style="width:' + pct + '%"></i></div>' +
+        '<div class="tline">' + line2 + '</div>' + nhac +
+      '</button>' + (open ? body(t) : '') + '</article>';
+  }
+
+  function billRows(t) {
+    const g = D.cfg.gia, rows = [];
+    const add = (l, a, sub, cls) => rows.push('<div class="brow ' + (cls || '') + '"><span>' + l + (sub ? '<span class="sub">' + sub + '</span>' : '') + '</span><span class="a">' + a + '</span></div>');
+    add('Lệ phí giải', fmt(t.leGiai));
+    if (t.thueTien || t.thueBo) add('Thuê đồ' + (t.thueBo ? ' (' + t.thueBo + ' bộ)' : ''), fmt(t.thueTien), t.thueNguon === 'danhsach' ? 'nhập tay trong Danh sách đội' : esc(t.thueMoTa));
+    if (t.vang || t.do) add('Phạt thẻ', fmt(t.phat), '🟨 ' + t.vang + ' · 🟥 ' + t.do + ((!g.theVang && !g.theDo) ? ' — chưa đặt mức phạt' : ''));
+    if (t.qua) add('Quà lưu niệm (bảng)', fmt(t.qua));
+    if (t.huyChuong) add('Huy chương', fmt(t.huyChuong));
+    if (t.khac) add('Khác', fmt(t.khac));
+    add('Tổng phải thu', fmt(t.tongPhai), '', 'total big');
+    add('Đã thu', fmt(t.daThu), 'Tiền mặt ' + fmt(t.tm + t.tmNhap) + ' · Chuyển khoản ' + fmt(t.ck + t.ckNhap) + ((t.tmNhap || t.ckNhap) ? ' (gồm ' + fmt(t.tmNhap + t.ckNhap) + ' nhập tay trong Danh sách đội)' : ''), 'big');
+    add(t.conThieu >= 0 ? 'Còn thiếu' : 'Dư', fmt(Math.abs(t.conThieu)), '', 'big');
+    return rows.join('');
+  }
+
+  function body(t) {
+    const d = dr(t.id);
+    const tabs = [['thu', 'Thu tiền'], ['khoan', 'Khoản thêm'], ['ls', 'Lịch sử' + (t.lichSu.length ? ' (' + t.lichSu.length + ')' : '')]];
+    let inner = '';
+    if (d.tab === 'thu') inner = tabThu(t, d); else if (d.tab === 'khoan') inner = tabKhoan(t, d); else inner = tabLichSu(t, d);
+    return '<div class="body"><div class="bill">' + billRows(t) + '</div>' +
+      '<div class="tabs">' + tabs.map(x => '<button class="' + (d.tab === x[0] ? 'on' : '') + '" data-act="tab" data-id="' + esc(t.id) + '" data-tab="' + x[0] + '">' + x[1] + '</button>').join('') + '</div>' +
+      inner + '</div>';
+  }
+
+  /* --- Tab Thu tiền --- */
+  function tabThu(t, d) {
+    const id = esc(t.id);
+    if (d.confirm) {
+      const sau = t.conThieu - d.amount;
+      return '<div class="confirm"><p>Thu ' + fmt(d.amount) + ' · ' + esc(d.method).toLowerCase() + '<br>từ ' + esc(t.name) +
+        '<small>' + (sau > 0 ? 'Sau khi thu còn thiếu ' + fmt(sau) : sau === 0 ? 'Sau khi thu đội đã đủ' : 'Thu vượt ' + fmt(-sau) + ' so với còn thiếu (ghi là dư)') + '</small></p>' +
+        '<div class="actions"><button class="ghost" data-act="back" data-id="' + id + '">Quay lại</button>' +
+        '<button class="primary" data-act="pay" data-id="' + id + '"' + (d.busy ? ' disabled' : '') + '>' + (d.busy ? 'Đang lưu...' : 'Xác nhận thu') + '</button></div></div>';
+    }
+    const quick = [];
+    if (t.conThieu > 0) quick.push('<button class="chip full" data-act="q" data-id="' + id + '" data-v="' + t.conThieu + '" data-mode="set">Đủ ' + num(t.conThieu) + '</button>');
+    [50000, 100000, 200000, 500000].forEach(v => quick.push('<button class="chip" data-act="q" data-id="' + id + '" data-v="' + v + '" data-mode="add">+' + num(v / 1000) + 'k</button>'));
+    quick.push('<button class="chip" data-act="q" data-id="' + id + '" data-v="0" data-mode="set">Xóa</button>');
+    const nhacPanel = d.nhac ? nhacHTML(t, d) : (t.conThieu > 0 ? '<button class="secondary" data-act="nhac" data-id="' + id + '">Soạn tin nhắc nợ</button>' : '');
+    return '<div class="field"><span class="lbl">Hình thức</span><div class="seg" style="margin-top:0">' +
+        ['Tiền mặt', 'Chuyển khoản'].map(m => '<button class="' + (d.method === m ? 'on' : '') + '" data-act="method" data-id="' + id + '" data-m="' + m + '">' + m + '</button>').join('') + '</div></div>' +
+      '<div class="field"><label class="lbl" for="amt-' + id + '">Số tiền đóng lần này</label>' +
+        '<input class="money" id="amt-' + id + '" data-f="amount" data-id="' + id + '" inputmode="numeric" autocomplete="off" placeholder="0" value="' + (d.amount ? num(d.amount) : '') + '">' +
+        '<div class="quick">' + quick.join('') + '</div></div>' +
+      '<div class="field"><label class="lbl" for="note-' + id + '">Ghi chú (không bắt buộc)</label><input class="txt" id="note-' + id + '" data-f="note" data-id="' + id + '" placeholder="Ví dụ: đội trưởng đóng, còn lại tuần sau" value="' + esc(d.note) + '"></div>' +
+      '<button class="primary js-pay" data-act="ask" data-id="' + id + '"' + (d.amount > 0 ? '' : ' disabled') + '>' + payLabel(d) + '</button>' + nhacPanel;
+  }
+  const payLabel = d => d.amount > 0 ? 'Thu ' + fmt(d.amount) + ' · ' + d.method : 'Nhập số tiền để thu';
+
+  function nhacMessage(t) {
+    const ck = D.cfg.ck, parts = [];
+    if (t.leGiai) parts.push('lệ phí giải ' + fmt(t.leGiai));
+    if (t.thueTien) parts.push('thuê đồ ' + fmt(t.thueTien));
+    if (t.phat) parts.push('phạt thẻ ' + fmt(t.phat));
+    if (t.qua) parts.push('quà lưu niệm ' + fmt(t.qua));
+    if (t.huyChuong) parts.push('huy chương ' + fmt(t.huyChuong));
+    if (t.khac) parts.push('khoản khác ' + fmt(t.khac));
+    const L = ['Chào đội ' + t.name + (t.nhom ? ' (' + t.nhom + ')' : '') + '. BTC KUL xin nhắc khoản còn thiếu: ' + fmt(t.conThieu) + '.'];
+    if (parts.length) L.push('Gồm: ' + parts.join(', ') + (t.daThu ? '; đội đã đóng ' + fmt(t.daThu) : '') + '.');
+    if (ck.soTaiKhoan) L.push('Chuyển khoản: ' + [ck.nganHang, 'STK ' + ck.soTaiKhoan, ck.chuTaiKhoan].filter(Boolean).join(' - ') + '. Nội dung: ' + t.name + (t.nhom ? ' ' + t.nhom : '') + '.');
+    L.push('Đội có thể đóng thêm từng phần cũng được. Cảm ơn bạn!');
+    return L.join('\n');
+  }
+  function nhacHTML(t, d) {
+    const id = esc(t.id);
+    return '<div class="field" style="margin-top:12px"><label class="lbl" for="nh-' + id + '">Tin nhắn nhắc nợ (sửa thoải mái)</label>' +
+      '<textarea class="txt" id="nh-' + id + '" data-f="nhactext" data-id="' + id + '">' + esc(d.nhacText) + '</textarea></div>' +
+      '<div class="actions"><button class="ghost" data-act="nhacclose" data-id="' + id + '">Đóng</button>' +
+      '<button class="primary" data-act="nhaccopy" data-id="' + id + '">Sao chép và ghi đã nhắc</button></div>';
+  }
+
+  /* --- Tab Khoản thêm --- */
+  function tabKhoan(t, d) {
+    const id = esc(t.id), k = khDraft(d), tien = k.sl * k.gia;
+    if (d.khConfirm) {
+      return '<div class="confirm"><p>Thêm khoản phải thu ' + fmt(tien) + '<br>' + esc(k.loai) + (k.sl > 1 ? ' × ' + k.sl : '') + '<small>' + esc(t.name) + '</small></p>' +
+        '<div class="actions"><button class="ghost" data-act="back" data-id="' + id + '">Quay lại</button>' +
+        '<button class="primary" data-act="addkh" data-id="' + id + '"' + (d.busy ? ' disabled' : '') + '>' + (d.busy ? 'Đang lưu...' : 'Xác nhận thêm') + '</button></div></div>';
+    }
+    return '<div class="field"><span class="lbl">Loại khoản</span><div class="row" style="padding:0;flex-wrap:wrap">' +
+        D.cfg.loaiKhoan.map(l => '<button class="chip ' + (k.loai === l ? 'on' : '') + '" data-act="kloai" data-id="' + id + '" data-l="' + esc(l) + '">' + esc(l) + '</button>').join('') + '</div></div>' +
+      '<div class="field"><span class="lbl">Số lượng</span><div class="stepper"><button data-act="ksl" data-id="' + id + '" data-d="-1" aria-label="Giảm">−</button><output>' + k.sl + '</output><button data-act="ksl" data-id="' + id + '" data-d="1" aria-label="Tăng">+</button></div></div>' +
+      '<div class="field"><label class="lbl" for="kg-' + id + '">Đơn giá' + (k.gia ? '' : ' (chưa đặt sẵn, nhập tay)') + '</label><input class="txt" id="kg-' + id + '" data-f="khgia" data-id="' + id + '" inputmode="numeric" placeholder="0" value="' + (k.gia ? num(k.gia) : '') + '"></div>' +
+      '<div class="preview js-kh-prev">Thành tiền: ' + fmt(tien) + '</div>' +
+      '<div class="field"><label class="lbl" for="kn-' + id + '">Ghi chú (không bắt buộc)</label><input class="txt" id="kn-' + id + '" data-f="khnote" data-id="' + id + '" value="' + esc(k.note) + '"></div>' +
+      '<button class="primary js-kh-btn" data-act="askkh" data-id="' + id + '"' + (tien > 0 ? '' : ' disabled') + '>Thêm khoản phải thu</button>' +
+      '<div class="tline" style="margin-top:8px">Thêm khoản chỉ làm tăng số phải thu. Tiền đội đóng vẫn ghi ở tab Thu tiền.</div>';
+  }
+
+  /* --- Tab Lịch sử --- */
+  function tabLichSu(t, d) {
+    if (!t.lichSu.length) return '<div class="empty" style="padding:16px">Chưa có phiếu thu hay khoản thêm nào.</div>';
+    return t.lichSu.map(h => {
+      const isThu = h.loai === 'thu';
+      const sign = isThu ? '<span class="plus">+' + fmt(h.tien) + '</span>' : '<span class="minus">' + fmt(h.tien) + ' phải thu</span>';
+      let act = '';
+      if (!h.huy) {
+        if (d.huyId === h.id) {
+          act = '<div class="field" style="margin:8px 0 0"><input class="txt" data-f="huyly" data-id="' + esc(t.id) + '" placeholder="Lý do hủy (bắt buộc)" value="' + esc(d.huyLy) + '">' +
+            '<div class="actions" style="margin-top:8px"><button class="ghost" style="min-height:44px" data-act="huyno" data-id="' + esc(t.id) + '">Giữ lại</button>' +
+            '<button class="primary danger" style="min-height:44px" data-act="huyyes" data-id="' + esc(t.id) + '" data-hid="' + esc(h.id) + '" data-hl="' + h.loai + '"' + (d.busy ? ' disabled' : '') + '>Hủy dòng này</button></div></div>';
+        } else act = '<button class="linkbtn" data-act="huyask" data-id="' + esc(t.id) + '" data-hid="' + esc(h.id) + '" data-hl="' + h.loai + '">Hủy</button>';
+      }
+      return '<div class="hist ' + (h.huy ? 'void' : '') + '"><div class="h1"><span>' + esc(h.text) + '</span><span>' + sign + '</span></div>' +
+        '<div class="h2">' + when(h.t) + (h.ghiChu ? ' · ' + esc(h.ghiChu) : '') + (h.huy ? ' · Đã hủy: ' + esc(h.lyDo) : '') + '</div>' + act + '</div>';
+    }).join('');
+  }
+
+  /* ---------- Sao chép ---------- */
+  function copyText(text) {
+    const fb = () => { const ta = document.createElement('textarea'); ta.value = text; ta.style.cssText = 'position:fixed;opacity:0;left:-999px'; document.body.appendChild(ta); ta.select(); let ok = false; try { ok = document.execCommand('copy'); } catch (e) {} ta.remove(); return ok; };
+    try { if (navigator.clipboard && window.isSecureContext) return navigator.clipboard.writeText(text).then(() => true, () => fb()); } catch (e) {}
+    return Promise.resolve(fb());
+  }
+
+  /* ---------- Sự kiện ---------- */
+  $('search').addEventListener('input', e => { S.q = e.target.value; renderList(); });
+  $('nhom').addEventListener('click', e => { const b = e.target.closest('[data-nhom]'); if (!b) return; S.nhom = b.dataset.nhom; renderFilters(); renderList(); });
+  $('mode').addEventListener('click', e => { const b = e.target.closest('[data-mode]'); if (!b) return; S.mode = b.dataset.mode; renderFilters(); renderList(); });
+  $('refresh').addEventListener('click', () => load(false));
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && D) load(true); });
+
+  $('summary').addEventListener('click', e => {
+    if (!e.target.closest('[data-act="copydebt"]')) return;
+    const owe = D.teams.filter(t => t.conThieu > 0).sort((a, b) => b.conThieu - a.conThieu);
+    const text = 'Danh sách đội còn thiếu (' + owe.length + ' đội, tổng ' + fmt(D.tong.conThieu) + '):\n' + owe.map(t => '• ' + t.name + (t.nhom ? ' (' + t.nhom + ')' : '') + ': ' + fmt(t.conThieu)).join('\n');
+    copyText(text).then(ok => toast(ok ? 'Đã sao chép danh sách còn thiếu' : 'Không sao chép được, hãy thử lại', !ok));
+  });
+
+  $('list').addEventListener('input', e => {
+    const f = e.target.dataset.f; if (!f) return;
+    const id = e.target.dataset.id, d = dr(id), card = e.target.closest('.team');
+    if (f === 'amount' || f === 'khgia') {
+      const v = parseInt(e.target.value.replace(/\D/g, ''), 10) || 0;
+      e.target.value = v ? num(v) : '';
+      if (f === 'amount') {
+        d.amount = v;
+        const b = card.querySelector('.js-pay'); b.textContent = payLabel(d); b.disabled = !(v > 0);
+      } else {
+        const k = khDraft(d); k.gia = v;
+        card.querySelector('.js-kh-prev').textContent = 'Thành tiền: ' + fmt(k.sl * k.gia);
+        card.querySelector('.js-kh-btn').disabled = !(k.sl * k.gia > 0);
+      }
+    } else if (f === 'note') d.note = e.target.value;
+    else if (f === 'khnote') khDraft(d).note = e.target.value;
+    else if (f === 'huyly') d.huyLy = e.target.value;
+    else if (f === 'nhactext') d.nhacText = e.target.value;
+  });
+
+  function team(id) { return D.teams.find(t => t.id === id); }
+  /* Máy chủ (V250+) trả kèm số liệu mới sau khi ghi → vẽ lại ngay, khỏi tải thêm 1 lượt; máy chủ cũ thì tải lại như trước */
+  function fresh(r) { if (r && r.tongQuan && r.tongQuan.teams) { D = r.tongQuan; if (D.dau) DAU = D.dau; renderAll(); } else load(true); }
+  function call(id, fn, okMsg, after) {
+    const d = dr(id); d.busy = true; renderList();
+    fn(google.script.run
+      .withSuccessHandler(r => { d.busy = false; after && after(d); toast(okMsg); fresh(r); })
+      .withFailureHandler(e => { d.busy = false; renderList(); toast(msg(e), true); }));
+  }
+
+  $('list').addEventListener('click', e => {
+    const b = e.target.closest('[data-act]'); if (!b) return;
+    const act = b.dataset.act, id = b.dataset.id, t = id ? team(id) : null, d = id ? dr(id) : null;
+    if (act === 'toggle') { S.open = (S.open === id) ? null : id; renderList(); if (S.open) { const el = document.querySelector('.team.open'); el && el.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); } return; }
+    if (!t || d.busy) return;
+    if (act === 'tab') { d.tab = b.dataset.tab; d.confirm = d.khConfirm = false; }
+    else if (act === 'method') { d.method = b.dataset.m; }
+    else if (act === 'q') { const v = Number(b.dataset.v); d.amount = b.dataset.mode === 'add' ? d.amount + v : v; }
+    else if (act === 'ask') { if (d.amount > 0) d.confirm = true; }
+    else if (act === 'back') { d.confirm = d.khConfirm = false; }
+    else if (act === 'pay') {
+      return call(id, r => r.tnThuTien(KEY, id, d.method, d.amount, d.note), 'Đã ghi ' + fmt(d.amount) + ' · ' + d.method, x => { x.amount = 0; x.note = ''; x.confirm = false; });
+    }
+    else if (act === 'kloai') { const k = khDraft(d); k.loai = b.dataset.l; k.gia = D.cfg.giaKhoan[k.loai] || 0; }
+    else if (act === 'ksl') { const k = khDraft(d); k.sl = Math.max(1, Math.min(999, k.sl + Number(b.dataset.d))); }
+    else if (act === 'askkh') { d.khConfirm = true; }
+    else if (act === 'addkh') {
+      const k = khDraft(d);
+      return call(id, r => r.tnThemKhoan(KEY, id, k.loai, k.sl, k.gia, k.note), 'Đã thêm khoản phải thu', x => { x.kh = null; x.khConfirm = false; });
+    }
+    else if (act === 'huyask') { d.huyId = b.dataset.hid; d.huyLoai = b.dataset.hl; d.huyLy = ''; }
+    else if (act === 'huyno') { d.huyId = null; }
+    else if (act === 'huyyes') {
+      if (!d.huyLy.trim()) { toast('Hãy nhập lý do hủy', true); return; }
+      const hid = b.dataset.hid, hl = b.dataset.hl;
+      return call(id, r => r.tnHuy(KEY, hl, hid, d.huyLy), 'Đã hủy dòng', x => { x.huyId = null; x.huyLy = ''; });
+    }
+    else if (act === 'nhac') { d.nhac = true; d.nhacText = nhacMessage(t); }
+    else if (act === 'nhacclose') { d.nhac = false; }
+    else if (act === 'nhaccopy') {
+      copyText(d.nhacText).then(ok => {
+        if (!ok) { toast('Không sao chép tự động được. Hãy chạm giữ vào khung tin nhắn để chép.', true); return; }
+        google.script.run.withSuccessHandler(r => { toast('Đã sao chép và ghi nhận đã nhắc'); fresh(r); }).withFailureHandler(er => toast(msg(er), true)).tnGhiNhac(KEY, id, t.conThieu);
+      });
+      return;
+    }
+    renderList();
+  });
+
+  /* ---------- Tự cập nhật khi bên khác thay đổi (trọng tài ghi thẻ, thuê đồ, BTC sửa bảng...) ----------
+     Hỏi "dấu thay đổi" 8 giây 1 lần (rất nhẹ); dấu đổi → tải lại. Đang gõ / đang xác nhận / đang lưu thì chờ xong mới tải. */
+  let DAU = null, CHO = false;
+  function ban() {
+    const a = document.activeElement;
+    if (a && (a.tagName === 'INPUT' || a.tagName === 'TEXTAREA') && a.id !== 'search') return true;
+    return Object.keys(drafts).some(k => { const d = drafts[k]; return d.busy || d.confirm || d.khConfirm || d.huyId || d.nhac; });
+  }
+  setInterval(() => {
+    if (document.hidden || !D) return;
+    if (CHO && !ban()) { load(true); return; }
+    google.script.run.withSuccessHandler(v => {
+      if (DAU === null) { DAU = v; return; }
+      if (v === DAU) return;
+      DAU = v; if (ban()) CHO = true; else load(true);
+    }).withFailureHandler(() => {}).kulDau();
+  }, 8000);
+
+  load(false);
+</script>
+<script>var KUL_AUTH={role:'cashier',key:KEY};</script>
+<script src="kul-team.js?v=V250"></script>
+</body>
+</html>
