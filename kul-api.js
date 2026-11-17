@@ -12,7 +12,8 @@ var KUL_QS = new URLSearchParams(location.search);
   function doc(k) { try { var v = localStorage.getItem(k); return v ? JSON.parse(v) : null; } catch (e) { return null; } }
   function luu(k, v) { try { var j = JSON.stringify(v); if (j.length < 400000) localStorage.setItem(k, j); } catch (e) {} }
   function goi(ten, args, ok, fail, user) {
-    var k = 'KUL:' + ten + ':' + JSON.stringify(args), nhanh = DOC_NHANH[ten] && !daGoi[k], cu = nhanh ? doc(k) : null, coCu = !!(cu && cu.v !== undefined);
+    if (!/^https://script.google.com/macros/s/[w-]+/exec$/.test(KUL_EXEC)) { if (fail) setTimeout(function () { fail(new Error('BTC chưa gắn link máy chủ cho trang này (sửa dòng KUL_EXEC trong kul-api.js).'), user); }); return; }
+    var k = "KUL:" + ten + ':' + JSON.stringify(args), nhanh = DOC_NHANH[ten] && !daGoi[k], cu = nhanh ? doc(k) : null, coCu = !!(cu && cu.v !== undefined);
     daGoi[k] = 1;
     if (coCu && ok) {
       dangCho++; nhan('Đang cập nhật dữ liệu mới…');

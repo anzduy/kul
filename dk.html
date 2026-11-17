@@ -21,6 +21,7 @@ button{font:inherit;border:0;border-radius:12px;padding:12px 14px;cursor:pointer
 .link{background:none;color:var(--muted);text-decoration:underline;padding:4px 0;margin-left:8px;font-size:13px}.tabs{display:grid;grid-template-columns:1fr 1fr;gap:4px;background:var(--fill);border-radius:12px;padding:3px}.tabs button{background:none;padding:9px}.tabs .on{background:#fff;font-weight:800}
 .prev{display:flex;gap:10px;margin-top:8px}.prev img{max-width:48%;max-height:160px;border-radius:10px;border:1px solid #ddd}.note{font-size:13px;color:var(--muted);line-height:1.45}.okbox{background:var(--okbg);color:var(--ok);padding:10px;border-radius:10px;margin-top:10px;font-weight:600}
 #toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:#222;color:#fff;padding:11px 16px;border-radius:999px;opacity:0;transition:.25s;max-width:92vw;text-align:center;pointer-events:none}#toast.show{opacity:1}#toast.bad{background:var(--bad)}
+.carow{display:flex;gap:8px;align-items:center;margin:8px 0}.carow select{flex:1;min-width:0}.carow span{color:var(--muted);font-size:13px}
 </style>
 </head>
 <body>
@@ -63,6 +64,7 @@ function ve(){if(!D)return;var h='',lt=D.luaTuoi;
     h+='<div class="okbox" style="background:var(--warnbg);color:var(--warn)">⚠️ BTC yêu cầu đội có mặt <b>sớm '+L.lenSom+' phút</b> để chuẩn bị — trước <b>'+esc(L.coMat)+'</b>.</div></div>';}
   else if(L)h+='<div class="card" style="background:var(--warnbg);color:var(--warn)">🗓 Lịch thi đấu sẽ được cập nhật vào <b>'+esc(L.capNhat)+'</b>. Mở lại link này để xem giờ thi đấu của đội.</div>';
   if(D.khoa)h+='<div class="card bad">🔒 BTC đã khoá nhận hồ sơ. Liên hệ BTC nếu cần bổ sung.</div>';
+  if(D.caBatBuoc||D.ca){h+=veCa();if(D.caBatBuoc&&!D.ca&&!D.khoa||CA.sua){$('app').innerHTML=h;return;}}
   h+='<div class="card"><b>Danh sách cầu thủ ('+D.cauThu.length+'/'+D.toiDa+')</b>';
   if(!D.cauThu.length)h+='<p class="note">Chưa có cầu thủ. Thêm ở bên dưới.</p>';
   D.cauThu.forEach(function(c){h+='<div class="p"><div class="so">'+(c.soAo===''||c.soAo==null?'–':esc(c.soAo))+'</div><div class="t"><b>'+esc(c.ten)+'</b><span class="sub">'+esc(c.ngaySinh)+' · Mã KUL: '+esc(c.id)+'</span><br>'+badge(c)+
@@ -74,6 +76,28 @@ function ve(){if(!D)return;var h='',lt=D.luaTuoi;
   h+='<p class="note">🔐 Ảnh và giấy tờ chỉ BTC KUL xem để xác nhận lứa tuổi, không công khai. Hồ sơ được duyệt sẽ lưu với <b>Mã KUL</b> — giải sau chỉ cần nhập mã (hoặc họ tên + ngày sinh), không phải nộp lại giấy tờ.</p>';
   $('app').innerHTML=h;
 }
+/* ⏰ Khung giờ đội KHÔNG thể đá — gửi trước khi đăng ký cầu thủ (BTC dùng để chia bảng, xếp giờ) */
+var CA={sua:false,caNgay:false,rows:[],ghiChu:'',init:false};
+function pm(s){var m=String(s||'').match(/(\d{1,2})h(\d{2})/);return m?+m[1]*60+ +m[2]:0;}
+function hm(t){return (t<600?'0':'')+Math.floor(t/60)+'h'+(t%60<10?'0':'')+t%60;}
+function gioDs(){var c=D.caCfg,o=[];for(var t=pm(c.tu);t<=pm(c.den);t+=(c.buoc||15))o.push(hm(t));return o;}
+function op(ds,v){return ds.map(function(x){return '<option'+(x===v?' selected':'')+'>'+x+'</option>';}).join('');}
+function caMo(){var c=D.ca;CA.sua=!!c;CA.caNgay=!!(c&&c.caNgay);CA.rows=c&&c.khung&&c.khung.length?c.khung.map(function(k){return k.slice();}):[[hm(pm(D.caCfg.tu)+60),hm(pm(D.caCfg.tu)+180)]];CA.ghiChu=c?c.ghiChu||'':'';CA.init=true;ve();}
+function caThem(){var l=CA.rows[CA.rows.length-1],den=pm(D.caCfg.den),a=Math.min(l?pm(l[1])+60:pm(D.caCfg.tu),den-60);CA.rows.push([hm(a),hm(Math.min(a+60,den))]);ve();}
+function veCa(){var c=D.ca,h='<div class="card" style="border:2px solid var(--tint)"><b>⏰ Khung giờ đội KHÔNG thể thi đấu</b>';
+  if(c&&!CA.sua)return h+'<div class="okbox">'+(c.caNgay?'✅ Đội đá được mọi khung giờ.':'Đội <b>không đá được</b>: '+c.khung.map(function(k){return '<b>'+esc(k[0])+'–'+esc(k[1])+'</b>';}).join(', '))+(c.ghiChu?'<br><span class="sub">Ghi chú: '+esc(c.ghiChu)+'</span>':'')+'</div>'+(D.khoa?'':'<button class="link" onclick="caMo()">Sửa khung giờ</button>')+'</div>';
+  if(D.khoa)return h+'<p class="note">Đội chưa gửi khung giờ. BTC đã khoá nhận — liên hệ BTC.</p></div>';
+  if(!CA.init){CA.init=true;CA.rows=[[hm(pm(D.caCfg.tu)+60),hm(pm(D.caCfg.tu)+180)]];}
+  h+='<p class="note">'+(c?'Sửa lại các khung giờ đội bận.':'Đội gửi phần này <b>trước</b>, sau đó mới đăng ký cầu thủ. BTC dựa vào đây để chia bảng và xếp giờ phù hợp.')+'</p>';
+  h+='<label class="chk"><input type="checkbox"'+(CA.caNgay?' checked':'')+' onchange="CA.caNgay=this.checked;ve()"> Đội đá được mọi khung giờ trong ngày</label>';
+  if(!CA.caNgay){var ds=gioDs();h+='<label>Đội KHÔNG đá được trong các khung giờ</label>';
+    CA.rows.forEach(function(r,i){h+='<div class="carow"><span>Từ</span><select aria-label="Từ" onchange="CA.rows['+i+'][0]=this.value">'+op(ds,r[0])+'</select><span>đến</span><select aria-label="Đến" onchange="CA.rows['+i+'][1]=this.value">'+op(ds,r[1])+'</select>'+(CA.rows.length>1?'<button class="link" onclick="CA.rows.splice('+i+',1);ve()">Xoá</button>':'')+'</div>';});
+    if(CA.rows.length<6)h+='<button class="link" style="margin-left:0" onclick="caThem()">+ Thêm khung giờ</button>';}
+  h+='<label>Ghi chú cho BTC (không bắt buộc)</label><input maxlength="200" value="'+esc(CA.ghiChu)+'" oninput="CA.ghiChu=this.value" placeholder="VD: buổi sáng học sinh thi học kỳ">';
+  h+='<button class="main" '+(busy?'disabled':'')+' onclick="caGui()">'+(busy?'Đang gửi…':'Gửi khung giờ')+'</button>'+(c?'<button class="link" style="margin:10px 0 0" onclick="CA.sua=false;ve()">Huỷ, giữ khung giờ cũ</button>':'')+'</div>';
+  return h;}
+function caGui(){if(!CA.caNgay)for(var i=0;i<CA.rows.length;i++)if(pm(CA.rows[i][1])<=pm(CA.rows[i][0])){toast('Khung '+(i+1)+': giờ kết thúc phải sau giờ bắt đầu.',true);return;}
+  run('ctGuiCa',[KEY,{caNgay:CA.caNgay,khung:CA.caNgay?[]:CA.rows,ghiChu:CA.ghiChu}],function(r){D=r;CA.sua=false;toast('Đã gửi khung giờ.'+(D.cauThu.length?'':' Mời đăng ký cầu thủ.'));ve();});}
 function form(){var c=nopLaiId&&D.cauThu.filter(function(x){return x.id===nopLaiId;})[0],h='<div class="card">';
   if(c)h+='<b>Sửa / nộp lại hồ sơ: '+esc(c.ten)+'</b> <button class="link" onclick="nopLaiId=null;anh={};ve()">Huỷ</button><p class="note">Sửa họ tên, ngày sinh nếu nhập sai và chụp lại 2 ảnh. Mã KUL giữ nguyên, hồ sơ quay về chờ BTC duyệt.</p>';
   else h+='<div class="tabs"><button class="'+(tab==='moi'?'on':'')+'" onclick="tab=\'moi\';ve()">Cầu thủ mới</button><button class="'+(tab==='ma'?'on':'')+'" onclick="tab=\'ma\';ve()">Đã có mã KUL</button></div>';

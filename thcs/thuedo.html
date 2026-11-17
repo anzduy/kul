@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <base target="_top">
+  <meta charset="UTF-8">
+  <link rel="preconnect" href="https://script.google.com">
+  <link rel="preconnect" href="https://script.googleusercontent.com">
+  <meta name="robots" content="noindex,nofollow">
+  <meta name="referrer" content="no-referrer">
+  <title>Thuê đồ · KUL</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="light dark">
+  <style>
+    :root {
+      --bg: #F2F2F7; --card: #FFFFFF; --text: #000; --muted: rgba(60,60,67,.62);
+      --fill: rgba(120,120,128,.12); --fill-2: rgba(120,120,128,.22); --sep: rgba(60,60,67,.16);
+      --tint: #FFB62E; --on-tint: #2A1A00; --ok: #1E8A3A; --ok-bg: rgba(52,199,89,.16);
+      --danger: #D70015; --danger-bg: rgba(255,59,48,.12);
+      --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, system-ui, sans-serif;
+      --num: ui-rounded, "SF Pro Rounded", var(--font);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root { --bg: #000; --card: #1C1C1E; --text: #fff; --muted: rgba(235,235,245,.62); --fill: rgba(118,118,128,.24); --fill-2: rgba(118,118,128,.36); --sep: rgba(84,84,88,.6); --ok: #30D158; --ok-bg: rgba(48,209,88,.18); --danger: #FF453A; --danger-bg: rgba(255,69,58,.18); }
+    }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--font); }
+    body { padding: calc(env(safe-area-inset-top, 0px) + 12px) 14px calc(env(safe-area-inset-bottom, 0px) + 48px); max-width: 600px; margin: 0 auto; }
+    button { font: inherit; color: inherit; cursor: pointer; border: 0; }
+    button:focus-visible, input:focus-visible { outline: 3px solid var(--tint); outline-offset: 2px; }
+    input { font: inherit; color: inherit; }
+    header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 4px 12px; }
+    h1 { margin: 0; font-size: 28px; letter-spacing: -.02em; line-height: 1.1; }
+    .refresh { background: var(--fill); border-radius: 999px; padding: 10px 16px; font-weight: 600; font-size: 14px; min-height: 44px; }
+    .refresh:disabled { opacity: .5; }
+    .tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+    .tile { background: var(--card); border-radius: 18px; padding: 12px 14px; }
+    .tile .l { font-size: 13px; color: var(--muted); font-weight: 600; }
+    .tile .v { font-family: var(--num); font-size: 26px; font-weight: 800; margin-top: 2px; font-variant-numeric: tabular-nums; }
+    .searchwrap { position: sticky; top: 0; z-index: 5; background: var(--bg); padding: 4px 0 8px; }
+    .toolbar { padding-bottom: 8px; }
+    .search { width: 100%; height: 46px; border: 0; border-radius: 14px; background: var(--fill); padding: 0 14px; font-size: 16px; }
+    .row { display: flex; gap: 8px; overflow-x: auto; padding: 8px 0 2px; scrollbar-width: none; }
+    .row::-webkit-scrollbar { display: none; }
+    .chip { flex-shrink: 0; min-height: 40px; padding: 0 14px; border-radius: 999px; background: var(--fill); font-weight: 600; font-size: 14px; white-space: nowrap; }
+    .chip.on { background: var(--tint); color: var(--on-tint); font-weight: 800; }
+    .chip small { opacity: .7; font-weight: 700; margin-left: 4px; }
+    .seg { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 4px; background: var(--fill); border-radius: 14px; padding: 3px; margin-top: 8px; }
+    .seg button { min-height: 40px; border-radius: 11px; background: none; font-weight: 600; font-size: 14px; }
+    .seg button.on { background: var(--card); font-weight: 800; box-shadow: 0 1px 3px rgba(0,0,0,.12); }
+    .team { background: var(--card); border-radius: 20px; margin-bottom: 10px; border: 2px solid transparent; overflow: hidden; }
+    .team.open { border-color: var(--tint); }
+    .head { display: block; width: 100%; text-align: left; background: none; padding: 14px; }
+    .head .r1 { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+    .tname { font-size: 18px; font-weight: 800; line-height: 1.2; word-break: break-word; }
+    .tmeta { font-size: 13px; color: var(--muted); margin-top: 2px; }
+    .badge { flex-shrink: 0; border-radius: 12px; padding: 6px 10px; font-weight: 800; font-size: 14px; background: var(--fill); color: var(--muted); }
+    .badge.ok { background: var(--ok-bg); color: var(--ok); }
+    .tline { font-size: 13px; color: var(--muted); line-height: 1.4; margin-top: 8px; }
+    .body { padding: 4px 14px 16px; border-top: 1px solid var(--sep); }
+    .ord { padding: 10px 0; border-bottom: 1px solid var(--sep); }
+    .ord .h1 { display: flex; justify-content: space-between; gap: 10px; font-size: 16px; font-weight: 700; }
+    .ord .h2 { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .ord.void .h1 { text-decoration: line-through; color: var(--muted); }
+    .swatch { display: inline-block; width: 12px; height: 12px; border-radius: 50%; background: var(--fill-2); margin-right: 6px; vertical-align: -1px; }
+    .field { margin-bottom: 12px; }
+    .lbl { font-size: 13px; font-weight: 700; color: var(--muted); margin-bottom: 6px; display: block; }
+    .txt { width: 100%; height: 48px; border: 0; border-radius: 14px; background: var(--fill); padding: 0 14px; font-size: 16px; }
+    .stepper { display: flex; align-items: center; gap: 10px; }
+    .stepper button { width: 52px; height: 52px; border-radius: 14px; background: var(--fill); font-size: 28px; font-weight: 600; }
+    .stepper output { min-width: 56px; text-align: center; font-size: 30px; font-weight: 800; font-variant-numeric: tabular-nums; }
+    .stepper .tens { width: auto; padding: 0 14px; font-size: 15px; font-weight: 700; }
+    .preview { font-size: 16px; font-weight: 800; margin: 4px 0 12px; }
+    .primary { width: 100%; min-height: 56px; border-radius: 16px; background: var(--tint); color: var(--on-tint); font-size: 17px; font-weight: 800; padding: 0 12px; }
+    .primary:disabled { background: var(--fill); color: var(--muted); }
+    .primary.danger { background: var(--danger-bg); color: var(--danger); }
+    .ghost { min-height: 56px; padding: 0 16px; border-radius: 16px; background: var(--fill); font-weight: 600; white-space: nowrap; }
+    .actions { display: flex; gap: 10px; }
+    .confirm { padding: 14px; border-radius: 16px; background: var(--fill); text-align: center; }
+    .confirm p { margin: 0 0 12px; font-size: 17px; font-weight: 700; line-height: 1.4; }
+    .confirm p small { display: block; font-size: 14px; font-weight: 600; color: var(--muted); margin-top: 4px; }
+    .linkbtn { background: none; color: var(--muted); font-size: 13px; text-decoration: underline; min-height: 36px; padding: 0 2px; }
+    .formtitle { font-weight: 800; font-size: 16px; margin: 16px 0 10px; }
+    .empty, .error { text-align: center; padding: 36px 20px; color: var(--muted); line-height: 1.5; }
+    .error { color: var(--danger); }
+    .warn { font-size: 12px; color: #C93400; font-weight: 600; }
+    #toast { position: fixed; left: 50%; bottom: calc(env(safe-area-inset-bottom, 0px) + 24px); transform: translate(-50%, 20px); background: #1C1C1E; color: #fff; padding: 12px 18px; border-radius: 999px; font-weight: 600; font-size: 15px; opacity: 0; pointer-events: none; transition: .25s; max-width: 90vw; text-align: center; z-index: 20; }
+    #toast.show { opacity: 1; transform: translate(-50%, 0); } #toast.bad { background: var(--danger); }
+    @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+  </style>
+</head>
+<body>
+  <header><h1>Thuê đồ</h1><button class="refresh" id="refresh">Tải lại</button></header>
+  <section id="summary"></section>
+  <div class="searchwrap"><input class="search" id="search" type="search" placeholder="Tìm tên đội" autocomplete="off" aria-label="Tìm tên đội"></div>
+  <div class="toolbar">
+    <div class="row" id="nhom" style="padding-top:0"></div>
+    <div class="seg" id="mode"></div>
+  </div>
+  <main id="list" aria-live="polite"><div class="empty">Đang tải danh sách đội...</div></main>
+  <div id="toast" role="status"></div>
+  <datalist id="mauList"></datalist>
+
+<script src="kul-api.js?v=THCS-1"></script>
+<script>
+  const KEY = KUL_QS.get('k') || '';
+  let D = null;
+  const S = { q: '', nhom: '', mode: 'tatca', open: null };
+  const drafts = {};
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const num = n => String(Math.abs(Math.round(n))).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  const fmt = n => num(n) + 'đ';
+  const msg = e => (e && e.message ? e.message : String(e)).replace(/^Exception:\s*/, '');
+  function toast(t, bad) { const el = $('toast'); el.textContent = t; el.className = 'show' + (bad ? ' bad' : ''); clearTimeout(toast._t); toast._t = setTimeout(() => { el.className = ''; }, 3200); }
+  function when(ms) { const d = new Date(ms), p = x => String(x).padStart(2, '0'); return p(d.getDate()) + '/' + p(d.getMonth() + 1) + ' ' + p(d.getHours()) + ':' + p(d.getMinutes()); }
+  const COLORS = { 'đỏ': '#E5322D', 'xanh dương': '#1F6FEB', 'xanh lá': '#2EA043', 'vàng': '#F2C500', 'trắng': '#FFFFFF', 'đen': '#1C1C1E', 'cam': '#F5821F', 'tím': '#8E44AD', 'hồng': '#F06292' };
+  const sw = c => '<span class="swatch" style="background:' + (COLORS[String(c).toLowerCase().trim()] || 'var(--fill-2)') + ';box-shadow:inset 0 0 0 1px rgba(0,0,0,.2)"></span>';
+
+  function dr(id) { return drafts[id] || (drafts[id] = { sl: 1, loai: 'ao', mau: '', mauSac: '', gia: null, note: '', confirm: false, huyId: null, huyLy: '', busy: false }); }
+  const donVi = d => d.loai === 'ao' ? 'áo' : 'bộ';
+  const tenLoai = d => d.loai === 'ao' ? 'Áo' : 'Full bộ';
+  const mauLuu = d => '[' + tenLoai(d) + '] ' + d.mau.trim();
+  const gia = d => d.gia != null ? d.gia : (d.loai === 'ao' ? (Number(D.cfg.giaThueAo) || 10000) : (Number(D.cfg.giaThueBo) || 15000));
+  const hopLe = d => Number.isInteger(d.sl) && d.sl >= 1 && d.sl <= 99 && d.mau.trim() && d.mau.trim().length <= 45 && d.mauSac.trim() && Number.isInteger(gia(d)) && gia(d) > 0 && gia(d) <= 100000000;
+
+
+  function load(quiet) {
+    $('refresh').disabled = true;
+    google.script.run
+      .withSuccessHandler(r => { D = r; $('refresh').disabled = false; $('mauList').innerHTML = Array.from(new Set((D.cfg.mauGoiY || []).map(m => m.replace(/^\[(Áo|Full bộ)\]\s*/i, '')))).map(m => '<option value="' + esc(m) + '">').join(''); renderAll(); })
+      .withFailureHandler(e => { $('refresh').disabled = false; if (!D) $('list').innerHTML = '<div class="error">' + esc(msg(e)) + '</div>'; else if (!quiet) toast(msg(e), true); })
+      .tdLayDanhSach(KEY);
+  }
+
+  function renderAll() { renderSummary(); renderFilters(); renderList(); }
+  function renderSummary() {
+    const bo = D.teams.reduce((s, t) => s + t.tongBo, 0), tien = D.teams.reduce((s, t) => s + t.tongTien, 0), doi = D.teams.filter(t => (t.coThue || t.tongBo > 0)).length;
+    $('summary').innerHTML = '<div class="tiles"><div class="tile"><div class="l">Tổng số áo / bộ đã thuê</div><div class="v">' + bo + '</div></div>' +
+      '<div class="tile"><div class="l">Số đội thuê</div><div class="v">' + doi + '/' + D.teams.length + '</div></div></div>' +
+      (!D.cfg.giaThueBo ? '<div class="warn" style="margin-bottom:8px">Chưa đặt giá thuê mặc định (sửa TN_CONFIG.GIA.thueBo trong ThuNgan.gs). Bạn vẫn nhập được đơn giá tay.</div>' : '');
+  }
+  function renderFilters() {
+    const nhoms = []; D.teams.forEach(t => { if (t.nhom && nhoms.indexOf(t.nhom) < 0) nhoms.push(t.nhom); });
+    const cnt = n => D.teams.filter(t => !n || t.nhom === n).length;
+    $('nhom').innerHTML = nhoms.length > 1
+      ? ['<button class="chip ' + (S.nhom === '' ? 'on' : '') + '" data-nhom="">Tất cả<small>' + cnt('') + '</small></button>']
+          .concat(nhoms.map(n => '<button class="chip ' + (S.nhom === n ? 'on' : '') + '" data-nhom="' + esc(n) + '">' + esc(n) + '<small>' + cnt(n) + '</small></button>')).join('') : '';
+    $('mode').innerHTML = [['tatca', 'Tất cả'], ['chua', 'Chưa thuê'], ['da', 'Đã thuê']].map(x => '<button class="' + (S.mode === x[0] ? 'on' : '') + '" data-mode="' + x[0] + '">' + x[1] + '</button>').join('');
+  }
+  function renderList() {
+    const q = S.q.trim().toLowerCase();
+    let list = D.teams.filter(t => (!S.nhom || t.nhom === S.nhom) && (!q || t.name.toLowerCase().indexOf(q) >= 0));
+    if (S.mode === 'chua') list = list.filter(t => !(t.coThue || t.tongBo > 0)); else if (S.mode === 'da') list = list.filter(t => (t.coThue || t.tongBo > 0));
+    if (!list.length) { $('list').innerHTML = '<div class="empty">' + (S.q ? 'Không có đội nào khớp "' + esc(S.q) + '".' : 'Chưa có đội nào ở mục này.') + '</div>'; return; }
+    $('list').innerHTML = list.map(card).join('');
+  }
+
+  function card(t) {
+    const open = S.open === t.id, live = t.don.filter(o => !o.huy);
+    const gop = {}; live.forEach(o => { const k = o.mau + ' · ' + o.mauSac; gop[k] = (gop[k] || 0) + o.soBo; });
+    const mo = Object.keys(gop).map(k => gop[k] + ' suất ' + k).join(' | ');
+    return '<article class="team ' + (open ? 'open' : '') + '"><button class="head" data-act="toggle" data-id="' + esc(t.id) + '" aria-expanded="' + open + '">' +
+      '<div class="r1"><div><div class="tname">' + esc(t.name) + '</div><div class="tmeta">' + esc([t.nhom, t.trangPhuc && 'Trang phục: ' + t.trangPhuc].filter(Boolean).join(' · ')) + '</div></div>' +
+      '<span class="badge ' + (t.coThue || t.tongBo ? 'ok' : '') + '">' + (t.tongBo ? t.tongBo + ' suất' : (t.coThue ? 'Khoản nhập tay' : 'Chưa thuê')) + '</span></div>' +
+      (t.coThue || t.tongBo ? '<div class="tline">' + esc(mo) + ' · <b>' + fmt(t.tongTien) + '</b></div>' : '') + '</button>' + (open ? body(t) : '') + '</article>';
+  }
+
+  function body(t) {
+    const d = dr(t.id), id = esc(t.id);
+    const orders = t.don.slice().sort((a, b) => b.t - a.t).map(o => {
+      let act = '';
+      if (!o.huy) {
+        if (d.huyId === o.id) act = '<div class="field" style="margin:8px 0 0"><input class="txt" data-f="huyly" data-id="' + id + '" placeholder="Lý do hủy (bắt buộc)" value="' + esc(d.huyLy) + '"><div class="actions" style="margin-top:8px"><button class="ghost" style="min-height:44px" data-act="huyno" data-id="' + id + '">Giữ lại</button><button class="primary danger" style="min-height:44px" data-act="huyyes" data-id="' + id + '" data-hid="' + esc(o.id) + '"' + (d.busy ? ' disabled' : '') + '>Hủy đơn này</button></div></div>';
+        else act = '<button class="linkbtn" data-act="huyask" data-id="' + id + '" data-hid="' + esc(o.id) + '">Hủy đơn</button>';
+      }
+      return '<div class="ord ' + (o.huy ? 'void' : '') + '"><div class="h1"><span>' + o.soBo + ' suất · ' + esc(o.mau) + ' · ' + sw(o.mauSac) + esc(o.mauSac) + '</span><span>' + fmt(o.thanhTien) + '</span></div>' +
+        '<div class="h2">' + fmt(o.donGia) + '/suất · ' + when(o.t) + (o.ghiChu ? ' · ' + esc(o.ghiChu) : '') + (o.huy ? ' · Đã hủy: ' + esc(o.lyDo) : '') + '</div>' + act + '</div>';
+    }).join('');
+
+    if (d.confirm) {
+      return '<div class="body">' + orders + '<div class="formtitle">Lưu đơn thuê</div><div class="confirm"><p>' + d.sl + ' ' + donVi(d) + ' · ' + tenLoai(d) + ' · ' + esc(d.mau) + ' · ' + esc(d.mauSac) + '<small>' + fmt(d.sl * gia(d)) + ' cho ' + esc(t.name) + '</small></p>' +
+        '<div class="actions"><button class="ghost" data-act="back" data-id="' + id + '">Quay lại</button><button class="primary" data-act="save" data-id="' + id + '"' + (d.busy ? ' disabled' : '') + '>' + (d.busy ? 'Đang lưu...' : 'Xác nhận') + '</button></div></div></div>';
+    }
+    const colors = D.cfg.mauSac.slice(); if (t.trangPhuc && colors.map(c => c.toLowerCase()).indexOf(t.trangPhuc.toLowerCase()) < 0) colors.unshift(t.trangPhuc);
+    const tong = d.sl * gia(d), ok = hopLe(d);
+    return '<div class="body">' + orders + '<div class="formtitle">Thêm đơn thuê</div>' +
+      '<div class="field"><span class="lbl">Loại thuê</span><div class="seg">' + [['ao','Áo · 10.000đ'],['bo','Full bộ · 15.000đ']].map(x => '<button type="button" class="' + (d.loai === x[0] ? 'on' : '') + '" data-act="loai" data-id="' + id + '" data-loai="' + x[0] + '">' + x[1] + '</button>').join('') + '</div></div>' +
+      '<div class="field"><span class="lbl">Số ' + donVi(d) + '</span><div class="stepper"><button data-act="sl" data-id="' + id + '" data-d="-1" aria-label="Giảm">−</button><output class="js-sl">' + d.sl + '</output><button data-act="sl" data-id="' + id + '" data-d="1" aria-label="Tăng">+</button><button class="tens" data-act="sl" data-id="' + id + '" data-d="5">+5</button><button class="tens" data-act="sl" data-id="' + id + '" data-d="10">+10</button></div></div>' +
+      '<div class="field"><label class="lbl" for="mau-' + id + '">Mẫu đồ</label><input class="txt" id="mau-' + id + '" list="mauList" maxlength="45" data-f="mau" data-id="' + id + '" placeholder="Ví dụ: Mẫu 1, áo lưới, áo thun..." value="' + esc(d.mau) + '"></div>' +
+      '<div class="field"><label class="lbl" for="ms-' + id + '">Màu sắc</label><input class="txt" id="ms-' + id + '" data-f="mausac" data-id="' + id + '" placeholder="Chọn bên dưới hoặc gõ" value="' + esc(d.mauSac) + '">' +
+        '<div class="row" style="padding:10px 0 0;flex-wrap:wrap">' + colors.map(c => '<button class="chip ' + (d.mauSac.toLowerCase() === c.toLowerCase() ? 'on' : '') + '" data-act="color" data-id="' + id + '" data-c="' + esc(c) + '">' + sw(c) + esc(c) + '</button>').join('') + '</div></div>' +
+      '<div class="field"><label class="lbl" for="g-' + id + '">Đơn giá mỗi ' + donVi(d) + '' + (gia(d) ? '' : ' (chưa đặt sẵn, nhập tay)') + '</label><input class="txt" id="g-' + id + '" data-f="gia" data-id="' + id + '" inputmode="numeric" placeholder="0" value="' + (gia(d) ? num(gia(d)) : '') + '"></div>' +
+      '<div class="field"><label class="lbl" for="n-' + id + '">Ghi chú (không bắt buộc)</label><input class="txt" id="n-' + id + '" data-f="note" data-id="' + id + '" placeholder="Ví dụ: size, số áo, đội trưởng nhận" value="' + esc(d.note) + '"></div>' +
+      '<div class="preview js-prev">Thành tiền: ' + fmt(tong) + '</div>' +
+      '<button class="primary js-save" data-act="ask" data-id="' + id + '"' + (ok ? '' : ' disabled') + '>Lưu đơn thuê</button></div>';
+  }
+
+  $('search').addEventListener('input', e => { S.q = e.target.value; renderList(); });
+  $('nhom').addEventListener('click', e => { const b = e.target.closest('[data-nhom]'); if (!b) return; S.nhom = b.dataset.nhom; renderFilters(); renderList(); });
+  $('mode').addEventListener('click', e => { const b = e.target.closest('[data-mode]'); if (!b) return; S.mode = b.dataset.mode; renderFilters(); renderList(); });
+  $('refresh').addEventListener('click', () => load(false));
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && D) load(true); });
+
+  function refreshBits(card, d) {
+    const p = card.querySelector('.js-prev'); if (p) p.textContent = 'Thành tiền: ' + fmt(d.sl * gia(d));
+    const b = card.querySelector('.js-save'); if (b) b.disabled = !(hopLe(d));
+  }
+  $('list').addEventListener('input', e => {
+    const f = e.target.dataset.f; if (!f) return;
+    const d = dr(e.target.dataset.id), card = e.target.closest('.team');
+    if (f === 'mau') { d.mau = e.target.value; refreshBits(card, d); }
+    else if (f === 'mausac') { d.mauSac = e.target.value; refreshBits(card, d); }
+    else if (f === 'gia') { const v = parseInt(e.target.value.replace(/\D/g, ''), 10) || 0; e.target.value = v ? num(v) : ''; d.gia = v; refreshBits(card, d); }
+    else if (f === 'note') d.note = e.target.value;
+    else if (f === 'huyly') d.huyLy = e.target.value;
+  });
+
+  $('list').addEventListener('click', e => {
+    const b = e.target.closest('[data-act]'); if (!b) return;
+    const act = b.dataset.act, id = b.dataset.id, d = id ? dr(id) : null;
+    if (act === 'toggle') { S.open = S.open === id ? null : id; renderList(); return; }
+    if (!d || d.busy) return;
+    if (act === 'loai') { d.loai = b.dataset.loai === 'bo' ? 'bo' : 'ao'; d.gia = null; d.confirm = false; }
+    else if (act === 'sl') d.sl = Math.max(1, Math.min(99, d.sl + Number(b.dataset.d)));
+    else if (act === 'color') d.mauSac = b.dataset.c;
+    else if (act === 'ask') { if (!hopLe(d)) { toast('Nhập đủ mẫu, màu và đơn giá lớn hơn 0; mẫu tối đa 45 ký tự.', true); return; } d.confirm = true; }
+    else if (act === 'back') d.confirm = false;
+    else if (act === 'save') {
+      if (!hopLe(d)) { toast('Đơn thuê chưa hợp lệ.', true); return; }
+      d.busy = true; renderList();
+      google.script.run
+        .withSuccessHandler(() => { drafts[id] = null; delete drafts[id]; toast('Đã lưu đơn thuê'); load(true); })
+        .withFailureHandler(er => { d.busy = false; renderList(); toast(msg(er), true); })
+        .tdLuuDon(KEY, id, d.sl, mauLuu(d), d.mauSac, gia(d), d.note);
+      return;
+    }
+    else if (act === 'huyask') { d.huyId = b.dataset.hid; d.huyLy = ''; }
+    else if (act === 'huyno') d.huyId = null;
+    else if (act === 'huyyes') {
+      if (!d.huyLy.trim()) { toast('Hãy nhập lý do hủy', true); return; }
+      d.busy = true; renderList();
+      google.script.run
+        .withSuccessHandler(() => { d.busy = false; d.huyId = null; d.huyLy = ''; toast('Đã hủy đơn'); load(true); })
+        .withFailureHandler(er => { d.busy = false; renderList(); toast(msg(er), true); })
+        .tdHuyDon(KEY, b.dataset.hid, d.huyLy);
+      return;
+    }
+    renderList();
+  });
+
+  load(false);
+</script>
+<script>var KUL_AUTH={role:'rental',key:KEY};</script>
+<script src="kul-team.js?v=THCS-1"></script>
+</body>
+</html>
