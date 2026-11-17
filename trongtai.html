@@ -3,6 +3,8 @@
 <head>
   <base target="_top">
   <meta charset="UTF-8">
+  <link rel="preconnect" href="https://script.google.com">
+  <link rel="preconnect" href="https://script.googleusercontent.com">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="robots" content="noindex,nofollow">
   <meta name="referrer" content="no-referrer">
@@ -208,6 +210,7 @@
     google.script.run
       .withSuccessHandler(r => {
         OFF = (r.now || Date.now()) - Date.now(); DUKIEN = r.phutDuKien || 25; TOITHIEU = r.phutToiThieu || 30;
+        if (window.KUL_SAU_BO_DEM && matches.length && ban()) { CHO = true; $refresh.disabled = false; return; }   /* đã bắt đầu nhập trên dữ liệu hiện sẵn → không đè, lưu xong tự cập nhật */
         if (r.dau) DAU = r.dau; CHO = false;
         matches = r.matches.map(prep);
         render();
